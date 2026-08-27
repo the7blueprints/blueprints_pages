@@ -2,7 +2,7 @@
 
 // Imports: Level objects and UI helpers.
 import GamEnvBackground from '@assets/js/GameEnginev1.1/essentials/GameEnvBackground.js';
-import Player from '@assets/js/GameEnginev1.1/essentials/Player.js';
+import CsPathwayPlayer from './CsPathwayPlayer.js';
 import Npc from '@assets/js/GameEnginev1.1/essentials/Npc.js';
 import GameLevelCsPathIdentity from './GameLevelCsPathIdentity.js';
 import PersonaHallTrial from './PersonaHallTrial.js';
@@ -351,7 +351,7 @@ class GameLevelCsPath1Way extends GameLevelCsPathIdentity {
     // List of objects definitions for this level
     this.classes = [
       { class: GamEnvBackground, data: bg_data },
-      { class: Player, data: player_data },
+      { class: CsPathwayPlayer, data: player_data },
       { class: Npc, data: npc_data_codeHubGatekeeper },
       { class: Npc, data: npc_data_personalEnrichmentGatekeeper },
       { class: Npc, data: npc_data_skillPassportGatekeeper },

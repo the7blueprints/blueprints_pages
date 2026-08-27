@@ -1,6 +1,6 @@
 // Level objects and UI helpers.
 import GamEnvBackground from '@assets/js/GameEnginev1.1/essentials/GameEnvBackground.js';
-import Player from '@assets/js/GameEnginev1.1/essentials/Player.js';
+import CsPathwayPlayer from './CsPathwayPlayer.js';
 import StatusPanel from '@assets/js/GameEnginev1.1/essentials/StatusPanel.js';
 import FormPanel from '@assets/js/GameEnginev1.1/essentials/FormPanel.js';
 import Picker from '@assets/js/GameEnginev1.1/essentials/Picker.js';
@@ -2163,7 +2163,7 @@ class GameLevelCsPath0Forge {
 
     this.classes = [
       { class: GamEnvBackground, data: bg_data },
-      { class: Player,           data: player_data },
+      { class: CsPathwayPlayer,           data: player_data },
       { class: FriendlyNpc,      data: npc_data_startGatekeeper },
       { class: FriendlyNpc,      data: npc_data_identityGatekeeper },
       { class: FriendlyNpc,      data: npc_data_avatarGatekeeper },
