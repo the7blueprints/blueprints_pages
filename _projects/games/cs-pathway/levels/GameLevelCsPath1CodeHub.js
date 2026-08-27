@@ -1,6 +1,6 @@
 // Imports
 import GamEnvBackground from '@assets/js/GameEnginev1.1/essentials/GameEnvBackground.js';
-import Player from '@assets/js/GameEnginev1.1/essentials/Player.js';
+import CsPathwayPlayer from './CsPathwayPlayer.js';
 import Npc from '@assets/js/GameEnginev1.1/essentials/Npc.js';
 import GameLevelCsPathIdentity from './GameLevelCsPathIdentity.js';
 
@@ -2094,7 +2094,7 @@ class GameLevelCsPath1CodeHub extends GameLevelCsPathIdentity {
 
     this.classes = [
       { class: GamEnvBackground, data: bg_data },
-      { class: Player,           data: player_data },
+      { class: CsPathwayPlayer,           data: player_data },
       { class: Npc,              data: npc_guide },
       { class: Npc,              data: npc_frontend },
       { class: Npc,              data: npc_backend },

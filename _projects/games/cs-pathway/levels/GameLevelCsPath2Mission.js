@@ -1,5 +1,5 @@
 import GamEnvBackground from '@assets/js/GameEnginev1.1/essentials/GameEnvBackground.js';
-import Player from '@assets/js/GameEnginev1.1/essentials/Player.js';
+import CsPathwayPlayer from './CsPathwayPlayer.js';
 import FriendlyNpc from '@assets/js/GameEnginev1.1/essentials/FriendlyNpc.js';
 import AiChallengeNpc, { CHALLENGE_ERROR_TYPES, CHALLENGE_VERDICTS } from '@assets/js/GameEnginev1.1/essentials/AiChallengeNpc.js';
 import GameLevelCsPathIdentity from './GameLevelCsPathIdentity.js';
@@ -406,7 +406,7 @@ class GameLevelCsPath2Mission extends GameLevelCsPathIdentity {
 
     this.classes = [
       { class: GamEnvBackground, data: bg_data },
-      { class: Player, data: player_data },
+      { class: CsPathwayPlayer, data: player_data },
       ...missionDeskZones.map((zone) => ({ class: FriendlyNpc, data: zone })),
       { class: FriendlyNpc, data: assessmentObservatoryPortalData },
     ];

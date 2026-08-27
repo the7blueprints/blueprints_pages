@@ -1,6 +1,6 @@
 // Imports: Level objects and UI helpers.
 import GamEnvBackground from '@assets/js/GameEnginev1.1/essentials/GameEnvBackground.js';
-import Player from '@assets/js/GameEnginev1.1/essentials/Player.js';
+import CsPathwayPlayer from './CsPathwayPlayer.js';
 import FriendlyNpc from '@assets/js/GameEnginev1.1/essentials/FriendlyNpc.js';
 import AiChallengeNpc from '@assets/js/GameEnginev1.1/essentials/AiChallengeNpc.js';
 import DialogueSystem from '@assets/js/GameEnginev1.1/essentials/DialogueSystem.js';
@@ -292,7 +292,7 @@ class GameLevelCsPath3Analytics extends GameLevelCsPathIdentity {
 
     this.classes = [
       { class: GamEnvBackground, data: bg_data },
-      { class: Player, data: player_data },
+      { class: CsPathwayPlayer, data: player_data },
       { class: FriendlyNpc, data: missionPortalData },
       { class: FriendlyNpc, data: npc_data_analyticsGuide },
       { class: FriendlyNpc, data: npc_data_githubGuide },
