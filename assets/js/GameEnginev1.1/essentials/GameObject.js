@@ -245,24 +245,39 @@ class GameObject {
         const otherRadius = Math.min(otherRight - otherLeft, otherBottom - otherTop) * otherRadiusPercent;
         const distance = Math.hypot(thisCenterX - otherCenterX, thisCenterY - otherCenterY);
         const hit = distance < thisRadius + otherRadius;
-      
+
+        // Directional touch flags use standard AABB penetration resolution:
+        // only flagged when the boxes truly overlap on BOTH axes (fixes "invisible
+        // walls" from objects that merely share a row/column but aren't touching),
+        // and only the shallowest-penetration axis is flagged (fixes corner hits
+        // locking both axes at once and leaving the player permanently stuck).
+        const overlapsX = thisLeft < otherRight && thisRight > otherLeft;
+        const overlapsY = thisTop < otherBottom && thisBottom > otherTop;
+        const aabbOverlap = overlapsX && overlapsY;
+
+        const penFromTop = thisBottom - otherTop;     // this entering other from above
+        const penFromBottom = otherBottom - thisTop;  // this entering other from below
+        const penFromLeft = thisRight - otherLeft;    // this entering other from the left
+        const penFromRight = otherRight - thisLeft;   // this entering other from the right
+        const minPen = aabbOverlap ? Math.min(penFromTop, penFromBottom, penFromLeft, penFromRight) : Infinity;
+
         const touchPoints = {
             this: {
                 id: this.canvas.id,
                 greet: this.spriteData?.greeting || 'Hello',
-                top: thisBottom > otherTop && thisTop < otherTop,
-                bottom: thisTop < otherBottom && thisBottom > otherBottom,
-                left: thisRight > otherLeft && thisLeft < otherLeft,
-                right: thisLeft < otherRight && thisRight > otherRight,
+                top: aabbOverlap && minPen === penFromTop,
+                bottom: aabbOverlap && minPen === penFromBottom,
+                left: aabbOverlap && minPen === penFromLeft,
+                right: aabbOverlap && minPen === penFromRight,
             },
             other: {
                 id: other.canvas.id,
                 greet: other.spriteData?.greeting || 'Hello',
                 reaction: other.spriteData?.reaction || null,
-                top: otherBottom > thisTop && otherTop < thisTop,
-                bottom: otherTop < thisBottom && otherBottom > thisBottom,
-                left: otherRight > thisLeft && otherLeft < thisLeft,
-                right: otherLeft < thisRight && otherRight > thisRight,
+                top: aabbOverlap && minPen === penFromBottom,
+                bottom: aabbOverlap && minPen === penFromTop,
+                left: aabbOverlap && minPen === penFromRight,
+                right: aabbOverlap && minPen === penFromLeft,
             },
         };
 
