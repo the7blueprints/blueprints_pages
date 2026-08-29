@@ -50,7 +50,7 @@ const PROFILE_PANEL_ID = 'toolchain-trail-profile-panel';
  * Hub-and-spoke space station map. The player walks between six station
  * modules arranged around a central hub ("The Setup Grounds"), each gating
  * a real dev-environment milestone, plus a 7th boss station ("The
- * Singularity Core") that only unfogs once the first six are complete.
+ * Singularity Core") that oonly unfogs once the first six are complete.
  *
  * @class
  */
