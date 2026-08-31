@@ -35,6 +35,7 @@ import DialogueSystem from '@assets/js/GameEnginev1.1/essentials/DialogueSystem.
 import ProfileManager from '@assets/js/projects/cs-pathway/model/ProfileManager.js';
 import LocalProfile from '@assets/js/projects/cs-pathway/model/localProfile.js';
 import StationVerificationTrial from './StationVerificationTrial.js';
+import TrailPath from './TrailPath.js';
 import {
   STATION_STATUS,
   formatStationGlyph,
@@ -322,6 +323,13 @@ class GameLevelCsPath4Toolchain {
 
     this.classes = [
       { class: GamEnvBackground, data: bg_data },
+      {
+        class: TrailPath,
+        data: {
+          stations: this.STATIONS,
+          getStatus: (stationId) => level.getStationStatus(stationId),
+        },
+      },
       { class: CsPathwayPlayer, data: player_data },
       ...this.STATIONS.map((station) => ({
         class: FriendlyNpc,
