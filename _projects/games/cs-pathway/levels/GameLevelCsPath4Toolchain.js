@@ -46,6 +46,22 @@ import {
 const PROFILE_PANEL_ID = 'toolchain-trail-profile-panel';
 
 /**
+ * Per-station hue-rotate applied on top of STATION_VISUAL_FILTERS so every
+ * station's shared placeholder sprite (gatekeeper2.png) reads as a distinct
+ * "character" while awaiting real per-station art (see TODO(art) below).
+ * Degrees chosen to land near each station's accentColor family.
+ */
+const STATION_HUE_ROTATE = Object.freeze({
+  'comm-relay': 'hue-rotate(0deg)',
+  'fusion-reactor': 'hue-rotate(60deg)',
+  'nav-console': 'hue-rotate(160deg)',
+  'cryo-archive': 'hue-rotate(220deg)',
+  'deep-space-gate': 'hue-rotate(280deg)',
+  'assembly-bay': 'hue-rotate(320deg)',
+  'singularity-core': 'hue-rotate(40deg)',
+});
+
+/**
  * GameLevelCsPath2Toolchain - "Toolchain Trail" (Level 2, Tools Setup World)
  *
  * Hub-and-spoke space station map. The player walks between six station
@@ -100,6 +116,8 @@ class GameLevelCsPath4Toolchain {
       {
         id: 'comm-relay',
         name: 'Comm Relay Station',
+        icon: '🖥️',
+        accentColor: '#38bdf8',
         skill: 'Navigating the shell',
         zone: 1,
         position: { x: width * 0.16, y: height * 0.28 },
@@ -117,6 +135,8 @@ class GameLevelCsPath4Toolchain {
       {
         id: 'fusion-reactor',
         name: 'Fusion Reactor Core',
+        icon: '☕',
+        accentColor: '#f97316',
         skill: 'Java installed & working',
         zone: 2,
         position: { x: width * 0.45, y: height * 0.18 },
@@ -134,6 +154,8 @@ class GameLevelCsPath4Toolchain {
       {
         id: 'nav-console',
         name: 'Nav Console Bay',
+        icon: '🧭',
+        accentColor: '#8b5cf6',
         skill: 'Code editor set up',
         zone: 3,
         position: { x: width * 0.76, y: height * 0.24 },
@@ -150,6 +172,8 @@ class GameLevelCsPath4Toolchain {
       {
         id: 'cryo-archive',
         name: 'Cryo Archive Vault',
+        icon: '🌿',
+        accentColor: '#22c55e',
         skill: 'Git installed & identity configured',
         zone: 4,
         position: { x: width * 0.16, y: height * 0.72 },
@@ -167,6 +191,8 @@ class GameLevelCsPath4Toolchain {
       {
         id: 'deep-space-gate',
         name: 'Deep Space Relay Gate',
+        icon: '🐙',
+        accentColor: '#ec4899',
         skill: 'Remote repos & auth',
         zone: 5,
         position: { x: width * 0.45, y: height * 0.82 },
@@ -183,6 +209,8 @@ class GameLevelCsPath4Toolchain {
       {
         id: 'assembly-bay',
         name: 'Assembly Bay',
+        icon: '🔧',
+        accentColor: '#eab308',
         skill: 'Build tool sanity check',
         zone: 6,
         position: { x: width * 0.76, y: height * 0.72 },
@@ -198,6 +226,8 @@ class GameLevelCsPath4Toolchain {
       {
         id: 'singularity-core',
         name: 'The Singularity Core',
+        icon: '⭐',
+        accentColor: '#fbbf24',
         skill: 'Everything together (boss)',
         zone: 7,
         isBoss: true,
@@ -469,7 +499,7 @@ class GameLevelCsPath4Toolchain {
       { type: 'section', title: 'Toolchain Trail', marginTop: '10px' },
       ...this.STATIONS.map((station) => ({
         key: `station_${station.id}`,
-        label: station.name,
+        label: `${station.icon} ${station.name}`,
         emptyValue: '—',
       })),
       { key: 'toolchainScore', label: 'Level 2 Score', emptyValue: '0.000' },
@@ -578,7 +608,8 @@ class GameLevelCsPath4Toolchain {
         const obj = objects.find((o) => o?.spriteData?.id === station.id || o?.data?.id === station.id);
         if (!obj?.canvas) return;
         const status = this.getStationStatus(station.id);
-        obj.canvas.style.filter = STATION_VISUAL_FILTERS[status] || 'none';
+        const hueRotate = STATION_HUE_ROTATE[station.id] || '';
+        obj.canvas.style.filter = `${hueRotate} ${STATION_VISUAL_FILTERS[status] || 'none'}`.trim();
       });
     };
 
@@ -610,7 +641,7 @@ class GameLevelCsPath4Toolchain {
       const status = this.getStationStatus(stationId);
 
       if (status === STATION_STATUS.LOCKED) {
-        await this.showDialogue(station.name, [
+        await this.showDialogue(`${station.icon} ${station.name}`, [
           station.isBoss
             ? 'The Singularity Core is sealed until every other station is verified.'
             : 'This station is still sealed. Complete the earlier stations first.',
@@ -619,7 +650,7 @@ class GameLevelCsPath4Toolchain {
       }
 
       if (status === STATION_STATUS.COMPLETE) {
-        await this.showDialogue(station.name, [
+        await this.showDialogue(`${station.icon} ${station.name}`, [
           `${station.name} is already verified.`,
           station.funFact,
         ]);
@@ -627,7 +658,7 @@ class GameLevelCsPath4Toolchain {
       }
 
       if (showIntro) {
-        await this.showDialogue(station.name, [station.narrativeHook]);
+        await this.showDialogue(`${station.icon} ${station.name}`, [station.narrativeHook]);
       }
 
       this._stationTrialOpen = true;
@@ -639,7 +670,7 @@ class GameLevelCsPath4Toolchain {
           this._recomputeStationStates(true);
 
           this.showToast(`✦ ${station.name} verified`);
-          await this.showDialogue(station.name, [
+          await this.showDialogue(`${station.icon} ${station.name}`, [
             `${station.name} verified!`,
             station.funFact,
           ]);
