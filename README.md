@@ -120,14 +120,17 @@ git merge upstream/main --allow-unrelated-histories -X theirs # destructive reso
 #### Windows WSL and/or Ubuntu or Kali Users
 
 - Execute the script: `./scripts/activate_ubuntu.sh` or `./scripts/activate_kali.sh`
+- Then run `./scripts/verifyTools.sh` to confirm your setup.
 
 #### macOS Users
 
 - Execute the script: `./scripts/activate_macos.sh`
+- Then run `./scripts/verifyTools.sh` to confirm your setup.
 
 #### Setup connection to GitHub
 
 - Execute the script: `./scripts/activate.sh`
+- Then run `./scripts/verifyTools.sh` to confirm your setup.
 
 #### Prep project to serve on localhost
 
@@ -135,6 +138,21 @@ git merge upstream/main --allow-unrelated-histories -X theirs # destructive reso
 - Source the virtual environment: `source venv/bin/activate`
 - Build localhost server:  `make`
 - Look for and click on server line output, perhaps `Server address: http://localhost:4500/portfolio/`.  The Port and baseurl may change.```
+
+### Verify Your Environment
+
+Run this after cloning and before starting any sprint work:
+
+```bash
+./scripts/verifyTools.sh
+```
+
+It auto-detects your repo location, checks required tools (git, ruby, bundler,
+python, pip), validates `_config.yml` and `venv/` setup, and confirms Jekyll can
+run. Each check prints `PASS`, `WARN` (non-blocking, e.g. optional tools like
+Jupyter/Java), or `FAIL` with a remediation hint. Exit code `0` means you're
+ready to go; exit code `1` means something needs fixing before you continue. A
+full report is also written to `verifyTools.md` in the repo root.
 
 ### Jupyter Kernels
 

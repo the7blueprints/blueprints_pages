@@ -19,6 +19,7 @@ import { STATION_STATUS } from '@assets/js/projects/cs-pathway/model/stationStat
 
 const BADGE_RADIUS = 17;
 const BADGE_OFFSET_Y = 90; // px above each station's sprite center
+const NAMEPLATE_OFFSET_Y = BADGE_OFFSET_Y + 34; // further above the numbered badge
 
 const BADGE_COLORS = Object.freeze({
   [STATION_STATUS.LOCKED]: { bg: '#0b1026', border: '#475569', text: '#64748b' },
@@ -49,6 +50,7 @@ class TrailPath extends GameObject {
       this._drawSegment(ctx, this.stations[i], this.stations[i + 1], t);
     }
     this.stations.forEach((station, index) => this._drawBadge(ctx, station, index, t));
+    this.stations.forEach((station) => this._drawNameplate(ctx, station));
     ctx.restore();
   }
 
@@ -132,6 +134,65 @@ class TrailPath extends GameObject {
     ctx.textBaseline = 'middle';
     const label = status === STATION_STATUS.COMPLETE ? '✓' : (station.isBoss ? '★' : String(index + 1));
     ctx.fillText(label, badgeCenter.x, badgeCenter.y + 1);
+  }
+
+  /**
+   * Per-station identity plate — separate signal from the status-colored
+   * badge above: always the same icon/color for a given station regardless
+   * of lock state (dimmed when locked), so each station is recognizable at
+   * a glance while real per-station building art is still pending.
+   */
+  _drawNameplate(ctx, station) {
+    if (!station.icon && !station.accentColor) return;
+    const center = this._centerOf(station);
+    const color = station.accentColor || '#94a3b8';
+    const status = this.getStatus(station.id);
+    const alpha = status === STATION_STATUS.LOCKED ? 0.35 : 1;
+
+    const label = `${station.icon || ''} ${station.name}`.trim();
+    ctx.font = 'bold 11px "Courier New", monospace';
+    const textWidth = ctx.measureText(label).width;
+    const paddingX = 10;
+    const plateWidth = textWidth + paddingX * 2;
+    const plateHeight = 22;
+
+    // Clamp so stations near a map edge (e.g. a station placed high up, or
+    // near the right edge like the boss) don't have their nameplate drawn
+    // partly or fully outside the canvas.
+    const canvasWidth = this.gameEnv?.innerWidth ?? ctx.canvas?.width ?? Infinity;
+    const margin = 6;
+    const plateCenter = {
+      x: Math.min(
+        Math.max(center.x, plateWidth / 2 + margin),
+        Math.max(canvasWidth - plateWidth / 2 - margin, plateWidth / 2 + margin),
+      ),
+      y: Math.max(center.y - NAMEPLATE_OFFSET_Y, plateHeight / 2 + margin),
+    };
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+
+    ctx.beginPath();
+    const x = plateCenter.x - plateWidth / 2;
+    const y = plateCenter.y - plateHeight / 2;
+    const radius = plateHeight / 2;
+    ctx.moveTo(x + radius, y);
+    ctx.arcTo(x + plateWidth, y, x + plateWidth, y + plateHeight, radius);
+    ctx.arcTo(x + plateWidth, y + plateHeight, x, y + plateHeight, radius);
+    ctx.arcTo(x, y + plateHeight, x, y, radius);
+    ctx.arcTo(x, y, x + plateWidth, y, radius);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(4,6,15,0.75)';
+    ctx.fill();
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = color;
+    ctx.stroke();
+
+    ctx.fillStyle = color;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, plateCenter.x, plateCenter.y + 1);
+    ctx.restore();
   }
 
   resize() {
