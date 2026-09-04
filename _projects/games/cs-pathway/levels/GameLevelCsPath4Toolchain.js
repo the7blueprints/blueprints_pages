@@ -21,7 +21,9 @@
 //     no new rendering system required.
 //
 // ASSET TODO (see design doc section 6 "Assets Needed" — not blocking):
-//   - Swap `npc/gatekeeper2.png` for real robot/alien station-guardian art
+//   - Six stations now use real building art from images/gamify/toolchain/
+//     (gate, forge, tower, townhall, archway, bridge); Integration Summit
+//     still uses the `npc/gatekeeper2.png` placeholder until real art lands.
 //   - Swap the background image below for a real space-station backdrop
 //   - Add real per-zone NPC portraits for the fun-fact popup
 //
@@ -46,19 +48,25 @@ import {
 const PROFILE_PANEL_ID = 'toolchain-trail-profile-panel';
 
 /**
- * Per-station hue-rotate applied on top of STATION_VISUAL_FILTERS so every
- * station's shared placeholder sprite (gatekeeper2.png) reads as a distinct
- * "character" while awaiting real per-station art (see TODO(art) below).
- * Degrees chosen to land near each station's accentColor family.
+ * Real per-station building art (images/gamify/toolchain). Integration
+ * Summit has no dedicated asset yet, so it falls back to the tinted
+ * placeholder sprite via STATION_HUE_ROTATE below.
+ */
+const STATION_BUILDING_SPRITES = Object.freeze({
+  'terminal-town-gate': { file: 'gate.png', pixels: { width: 315, height: 250 } },
+  'compiler-canyon-forge': { file: 'forge.png', pixels: { width: 500, height: 500 } },
+  'editor-isle-tower': { file: 'tower.png', pixels: { width: 500, height: 500 } },
+  'git-village-hall': { file: 'townhall.png', pixels: { width: 500, height: 500 } },
+  'github-gateway-arch': { file: 'archway.png', pixels: { width: 64, height: 64 } },
+  'build-bridge': { file: 'bridge.png', pixels: { width: 500, height: 500 } },
+});
+
+/**
+ * Hue-rotate fallback for stations without real art yet (currently just
+ * Integration Summit, which still uses the shared gatekeeper2.png sprite).
  */
 const STATION_HUE_ROTATE = Object.freeze({
-  'comm-relay': 'hue-rotate(0deg)',
-  'fusion-reactor': 'hue-rotate(60deg)',
-  'nav-console': 'hue-rotate(160deg)',
-  'cryo-archive': 'hue-rotate(220deg)',
-  'deep-space-gate': 'hue-rotate(280deg)',
-  'assembly-bay': 'hue-rotate(320deg)',
-  'singularity-core': 'hue-rotate(40deg)',
+  'integration-summit': 'hue-rotate(40deg)',
 });
 
 /**
@@ -66,8 +74,8 @@ const STATION_HUE_ROTATE = Object.freeze({
  *
  * Hub-and-spoke space station map. The player walks between six station
  * modules arranged around a central hub ("The Setup Grounds"), each gating
- * a real dev-environment milestone, plus a 7th boss station ("The
- * Singularity Core") that oonly unfogs once the first six are complete.
+ * a real dev-environment milestone, plus a final gate ("Integration
+ * Summit") that only unfogs once the first six are complete.
  *
  * @class
  */
@@ -114,14 +122,14 @@ class GameLevelCsPath4Toolchain {
      */
     this.STATIONS = [
       {
-        id: 'comm-relay',
-        name: 'Comm Relay Station',
+        id: 'terminal-town-gate',
+        name: 'Terminal Town Gate',
         icon: '🖥️',
         accentColor: '#38bdf8',
-        skill: 'Navigating the shell',
+        skill: 'Shell fundamentals and package management',
         zone: 1,
         position: { x: width * 0.16, y: height * 0.28 },
-        narrativeHook: "The relay won't sync until you prove you can pilot the terminal.",
+        narrativeHook: "The gate won't open until you prove you can pilot the shell.",
         instructions: [
           'Open your terminal application.',
           'Run pwd to see where you currently are.',
@@ -133,35 +141,35 @@ class GameLevelCsPath4Toolchain {
         funFact: "Fun fact: 'ls' has been a Unix command since 1971 — older than most operating systems still in use today.",
       },
       {
-        id: 'fusion-reactor',
-        name: 'Fusion Reactor Core',
+        id: 'compiler-canyon-forge',
+        name: 'Compiler Canyon Forge',
         icon: '☕',
         accentColor: '#f97316',
-        skill: 'Java installed & working',
+        skill: 'Java or Python runtime',
         zone: 2,
         position: { x: width * 0.45, y: height * 0.18 },
-        narrativeHook: 'The reactor only ignites for a verified compiler.',
+        narrativeHook: 'The forge only ignites for a verified runtime.',
         instructions: [
-          'Run java -version to confirm the JDK is installed.',
-          'Write a one-line Hello.java file.',
-          'Compile it with javac Hello.java.',
-          'Run it with java Hello.',
+          'Run java -version (or python --version) to confirm a runtime is installed.',
+          'Write a one-line Hello.java or hello.py file.',
+          'Compile it with javac Hello.java, if using Java.',
+          'Run it with java Hello (or python hello.py).',
         ],
-        expectedCommandPattern: /^(javac?\s+.*|java\s+-version)/i,
+        expectedCommandPattern: /^(javac?\s+.*|java\s+-version|python3?\s+.*)/i,
         exampleCommand: 'java -version',
         funFact: "Fun fact: Java was originally called 'Oak', named after a tree outside its creator's office.",
       },
       {
-        id: 'nav-console',
-        name: 'Nav Console Bay',
+        id: 'editor-isle-tower',
+        name: 'Editor Isle Tower',
         icon: '🧭',
         accentColor: '#8b5cf6',
-        skill: 'Code editor set up',
+        skill: 'VS Code/Cursor and WSL configuration',
         zone: 3,
         position: { x: width * 0.76, y: height * 0.24 },
-        narrativeHook: 'Plot your course — install a real editor before the console will respond.',
+        narrativeHook: 'The tower needs a properly configured editor before it will respond.',
         instructions: [
-          'Install VS Code (or your editor of choice).',
+          'Install VS Code or Cursor (and WSL if on Windows).',
           "Open this project's folder in it.",
           'Install one recommended extension.',
         ],
@@ -170,14 +178,14 @@ class GameLevelCsPath4Toolchain {
         funFact: 'Fun fact: VS Code is built on Electron — the same framework behind Slack and Discord.',
       },
       {
-        id: 'cryo-archive',
-        name: 'Cryo Archive Vault',
+        id: 'git-village-hall',
+        name: 'Git Village Hall',
         icon: '🌿',
         accentColor: '#22c55e',
-        skill: 'Git installed & identity configured',
+        skill: 'Git installation and configuration',
         zone: 4,
         position: { x: width * 0.16, y: height * 0.72 },
-        narrativeHook: "The archive won't preserve your work until it knows who you are.",
+        narrativeHook: "The hall won't record your work until it knows who you are.",
         instructions: [
           'Run git --version to confirm git is installed.',
           'Set your name: git config --global user.name "Your Name".',
@@ -189,14 +197,14 @@ class GameLevelCsPath4Toolchain {
         funFact: 'Fun fact: Linus Torvalds wrote Git in 2005 — in about a weekend — to manage Linux kernel development.',
       },
       {
-        id: 'deep-space-gate',
-        name: 'Deep Space Relay Gate',
+        id: 'github-gateway-arch',
+        name: 'GitHub Gateway Arch',
         icon: '🐙',
         accentColor: '#ec4899',
-        skill: 'Remote repos & auth',
+        skill: 'GitHub authentication and repository connectivity',
         zone: 5,
         position: { x: width * 0.45, y: height * 0.82 },
-        narrativeHook: 'No signal reaches the fleet without an authenticated uplink.',
+        narrativeHook: 'No signal passes the arch without an authenticated connection.',
         instructions: [
           'Confirm you have a GitHub account.',
           'Set up SSH key or token auth.',
@@ -207,32 +215,32 @@ class GameLevelCsPath4Toolchain {
         funFact: 'Fun fact: GitHub hosts over 100 million repositories — more code than any library in human history.',
       },
       {
-        id: 'assembly-bay',
-        name: 'Assembly Bay',
+        id: 'build-bridge',
+        name: 'Build Bridge',
         icon: '🔧',
         accentColor: '#eab308',
-        skill: 'Build tool sanity check',
+        skill: 'Project build and runtime verification',
         zone: 6,
         position: { x: width * 0.76, y: height * 0.72 },
-        narrativeHook: 'Nothing launches from this bay until the build actually succeeds.',
+        narrativeHook: 'Nothing crosses this bridge until the project actually builds and runs.',
         instructions: [
-          "Run the class's build command (e.g. mvn package or ./gradlew build).",
+          "Run the class's build command (e.g. make, mvn package, or ./gradlew build).",
           'Confirm it completes successfully.',
         ],
         expectedCommandPattern: /^(mvn|gradle|\.\/gradlew|make)\s+\S+/i,
-        exampleCommand: 'mvn package',
+        exampleCommand: 'make',
         funFact: "Fun fact: Maven's name comes from a word for 'accumulator of knowledge' — fitting for a build tool.",
       },
       {
-        id: 'singularity-core',
-        name: 'The Singularity Core',
+        id: 'integration-summit',
+        name: 'Integration Summit',
         icon: '⭐',
         accentColor: '#fbbf24',
-        skill: 'Everything together (boss)',
+        skill: 'Final end-to-end verification',
         zone: 7,
         isBoss: true,
         position: { x: width * 0.93, y: height * 0.48 },
-        narrativeHook: 'Only a fully assembled toolchain can survive the Core.',
+        narrativeHook: 'Only a fully verified toolchain can reach the summit.',
         instructions: [
           'Clone the starter project.',
           'Build it successfully.',
@@ -242,7 +250,7 @@ class GameLevelCsPath4Toolchain {
         ],
         expectedCommandPattern: /^git\s+push/i,
         exampleCommand: 'git push',
-        funFact: 'Every piece of your dev environment, wired together and proven end-to-end. Welcome to the fleet.',
+        funFact: 'Every station verified end-to-end — your development environment is complete.',
       },
     ];
     this._stationById = Object.fromEntries(this.STATIONS.map((s) => [s.id, s]));
@@ -334,22 +342,36 @@ class GameLevelCsPath4Toolchain {
       hitbox: { widthPercentage: 0.4, heightPercentage: 0.4 },
     };
 
-    const createStationGatekeeperData = (station) => ({
-      ...gatekeeperBaseData,
-      id: station.id,
-      greeting: station.name,
-      INIT_POSITION: { ...station.position },
-      interactDistance: 120,
-      alertDistance: 0.22,
-      zoneMessage: `${station.name}: Press E to interact.`,
-      reaction: function () {
-        void level.runStation(station.id, true);
-        if (level.showToast) level.showToast('Press E to interact');
-      },
-      interact: async function () {
-        await level.runStation(station.id, false);
-      },
-    });
+    const createStationGatekeeperData = (station) => {
+      const building = STATION_BUILDING_SPRITES[station.id];
+      const buildingOverrides = building ? {
+        src: path + '/images/gamify/toolchain/' + building.file,
+        pixels: building.pixels,
+        orientation: { rows: 1, columns: 1 },
+        down: { row: 0, start: 0, columns: 1, wiggle: 0.005 },
+        up: { row: 0, start: 0, columns: 1 },
+        left: { row: 0, start: 0, columns: 1 },
+        right: { row: 0, start: 0, columns: 1 },
+      } : {};
+
+      return {
+        ...gatekeeperBaseData,
+        ...buildingOverrides,
+        id: station.id,
+        greeting: station.name,
+        INIT_POSITION: { ...station.position },
+        interactDistance: 120,
+        alertDistance: 0.22,
+        zoneMessage: `${station.name}: Press E to interact.`,
+        reaction: function () {
+          void level.runStation(station.id, true);
+          if (level.showToast) level.showToast('Press E to interact');
+        },
+        interact: async function () {
+          await level.runStation(station.id, false);
+        },
+      };
+    };
 
     this.classes = [
       { class: GamEnvBackground, data: bg_data },
@@ -643,7 +665,7 @@ class GameLevelCsPath4Toolchain {
       if (status === STATION_STATUS.LOCKED) {
         await this.showDialogue(`${station.icon} ${station.name}`, [
           station.isBoss
-            ? 'The Singularity Core is sealed until every other station is verified.'
+            ? 'Integration Summit is sealed until every other station is verified.'
             : 'This station is still sealed. Complete the earlier stations first.',
         ]);
         return;

@@ -43,8 +43,8 @@ export default class StationVerificationTrial {
    * @param {Object} opts
    * @param {Object} opts.station - station descriptor, see GameLevelCsPath2Toolchain.js STATIONS
    * @param {string} opts.station.id
-   * @param {string} opts.station.name - in-world display name (e.g. "Comm Relay Station")
-   * @param {string} opts.station.skill - real-world skill label (e.g. "Navigating the shell")
+   * @param {string} opts.station.name - in-world display name (e.g. "Terminal Town Gate")
+   * @param {string} opts.station.skill - real-world skill label (e.g. "Shell fundamentals and package management")
    * @param {string} opts.station.narrativeHook - 1-2 sentence flavor text shown before the terminal
    * @param {string[]} opts.station.instructions - ordered list of real-world steps to show the student
    * @param {RegExp} opts.station.expectedCommandPattern - pattern the mock terminal checks input against
