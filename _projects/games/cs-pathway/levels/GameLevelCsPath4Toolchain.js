@@ -746,6 +746,38 @@ class GameLevelCsPath4Toolchain {
     };
 
     /**
+     * Section: persistent corner button — lets a student reopen the OS picker
+     * (e.g. if they picked the wrong OS) without hunting through the sidebar.
+     */
+    this._ensureOSButton = function () {
+      if (this._osButtonEl) return;
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = '💻 Change OS';
+      button.title = 'Switch the operating system used for station instructions';
+      button.style.cssText = `
+        position: fixed; bottom: 20px; left: 20px;
+        z-index: 100015;
+        background: ${uiTheme.background};
+        border: 2px solid ${uiTheme.borderColor};
+        color: ${uiTheme.accentColor};
+        font-family: "Courier New", monospace;
+        font-size: 13px;
+        padding: 8px 14px; border-radius: 8px; letter-spacing: 0.6px;
+        box-shadow: ${uiTheme.boxShadow};
+        cursor: pointer;
+      `;
+      button.onclick = () => this._promptOSSelection(true);
+      document.body.appendChild(button);
+      this._osButtonEl = button;
+    };
+
+    this._removeOSButton = function () {
+      if (this._osButtonEl?.parentNode) this._osButtonEl.parentNode.removeChild(this._osButtonEl);
+      this._osButtonEl = null;
+    };
+
+    /**
      * Section: sidebar (PLAYER PROFILE carried over + new Toolchain Trail block).
      */
     const panelFields = [
@@ -1112,6 +1144,7 @@ class GameLevelCsPath4Toolchain {
     // First thing the student sees on the trail: pick an OS (skipped if
     // already saved from a previous visit).
     this._promptOSSelection();
+    this._ensureOSButton();
 
     const objects = this.gameEnv?.gameObjects || [];
     const gatekeepers = objects.filter((obj) => this._stationGatekeeperIds?.includes(obj?.spriteData?.id));
@@ -1196,6 +1229,7 @@ class GameLevelCsPath4Toolchain {
     if (this._stuckCheckInterval) clearInterval(this._stuckCheckInterval);
     this._hideLoading();
     this.clearZoneAlert?.();
+    this._removeOSButton?.();
     if (this._toastEl?.parentNode) this._toastEl.parentNode.removeChild(this._toastEl);
     if (this.levelDialogueSystem) {
       if (typeof this.levelDialogueSystem.destroy === 'function') {
