@@ -46,6 +46,18 @@ import {
 } from '@assets/js/projects/cs-pathway/model/stationStatus.js';
 
 const PROFILE_PANEL_ID = 'toolchain-trail-profile-panel';
+const OS_STORAGE_KEY = 'ocs-toolchain-trail-os';
+
+/**
+ * Operating systems students can pick from before starting the trail.
+ * Selection drives which per-station instructions/example commands show.
+ */
+const OS_OPTIONS = Object.freeze([
+  { id: 'windows', icon: '🪟', label: 'Windows' },
+  { id: 'kasm', icon: '☁️', label: 'Kasm (Cloud Linux Desktop)' },
+  { id: 'macos', icon: '🍎', label: 'macOS' },
+  { id: 'linux', icon: '🐧', label: 'Linux' },
+]);
 
 /**
  * Real per-station building art (images/gamify/toolchain). Integration
@@ -98,6 +110,17 @@ class GameLevelCsPath4Toolchain {
     this.gameEnv.gameLevel = this;
 
     /**
+     * Section: OS selection (drives per-station instructions/example commands).
+     * Persisted so returning students aren't re-prompted every visit.
+     */
+    this.selectedOS = null;
+    try {
+      this.selectedOS = localStorage.getItem(OS_STORAGE_KEY) || null;
+    } catch (err) {
+      this.selectedOS = null;
+    }
+
+    /**
      * Section: shared UI theme (space palette, same shell/typography as Level 1).
      */
     this.uiTheme = {
@@ -133,11 +156,43 @@ class GameLevelCsPath4Toolchain {
         instructions: [
           'Open your terminal application.',
           'Run pwd to see where you currently are.',
-          'Run ls (or dir on Windows) to list files.',
+          'Run ls to list files.',
           'Create a new folder with mkdir toolchain-trail.',
         ],
-        expectedCommandPattern: /^(mkdir\s+\S+|ls|dir|pwd)/i,
+        instructionsByOS: {
+          windows: [
+            'Open Windows Terminal (pin it to your taskbar).',
+            'Install WSL with Ubuntu: wsl --install -d Ubuntu-24.04, then set a username and password when prompted.',
+            'Set it as your default: wsl --set-default Ubuntu-24.04.',
+            'Launch your Ubuntu shell any time with wsl, then use pwd, ls, and mkdir toolchain-trail like normal Linux commands.',
+          ],
+          kasm: [
+            'Open a Terminal in your Kasm Workspace.',
+            'Run pwd to see where you currently are.',
+            'Run ls to list files (cat shows a file\'s contents).',
+            'Create a new folder with mkdir toolchain-trail.',
+          ],
+          macos: [
+            'Open Terminal (keep it in the Dock for easy access).',
+            'Run pwd to see where you currently are.',
+            'Run ls to list files (cat shows a file\'s contents).',
+            'Create a new folder with mkdir toolchain-trail.',
+          ],
+          linux: [
+            'Open a Terminal.',
+            'Run pwd to see where you currently are.',
+            'Run ls to list files (cat shows a file\'s contents).',
+            'Create a new folder with mkdir toolchain-trail.',
+          ],
+        },
+        expectedCommandPattern: /^(mkdir\s+\S+|ls|dir|pwd|cd)/i,
+        expectedCommandPatternByOS: {
+          windows: /^(wsl(\s+.*)?|mkdir\s+\S+|ls|pwd|cd)/i,
+        },
         exampleCommand: 'mkdir toolchain-trail',
+        exampleCommandByOS: {
+          windows: 'wsl --install -d Ubuntu-24.04',
+        },
         funFact: "Fun fact: 'ls' has been a Unix command since 1971 — older than most operating systems still in use today.",
       },
       {
@@ -150,13 +205,52 @@ class GameLevelCsPath4Toolchain {
         position: { x: width * 0.45, y: height * 0.18 },
         narrativeHook: 'The forge only ignites for a verified runtime.',
         instructions: [
-          'Run java -version (or python --version) to confirm a runtime is installed.',
+          'Run java -version (or python3 --version) to confirm a runtime is installed.',
+          'If missing, install with sudo apt install default-jdk or sudo apt install python3.',
           'Write a one-line Hello.java or hello.py file.',
           'Compile it with javac Hello.java, if using Java.',
-          'Run it with java Hello (or python hello.py).',
+          'Run it with java Hello (or python3 hello.py).',
         ],
+        instructionsByOS: {
+          windows: [
+            'Open your WSL Ubuntu terminal.',
+            'Run python --version and pip --version to confirm Python is installed.',
+            'Also run ruby -v, bundle -v, and gem --version — the class stack uses Ruby tools too.',
+            'If anything is missing, re-run ./scripts/activate.sh from your project folder to install it.',
+          ],
+          macos: [
+            'Open Terminal.',
+            'Run python --version and pip --version to confirm Python is installed.',
+            'Also run ruby -v, bundle -v, and gem --version — the class stack uses Ruby tools too.',
+            'If anything is missing, install Homebrew from brew.sh, then re-run ./scripts/activate.sh from your project folder.',
+          ],
+          kasm: [
+            'Open a Terminal in your Kasm Workspace.',
+            'Run python --version and pip --version to confirm Python is installed.',
+            'Also run ruby -v, bundle -v, and gem --version — the class stack uses Ruby tools too.',
+            'If anything is missing, re-run ./scripts/activate.sh from your project folder to install it.',
+          ],
+          linux: [
+            'Open a Terminal.',
+            'Run python --version and pip --version to confirm Python is installed.',
+            'Also run ruby -v, bundle -v, and gem --version — the class stack uses Ruby tools too.',
+            'If anything is missing, install with sudo apt install <package>, then re-run ./scripts/activate.sh from your project folder.',
+          ],
+        },
         expectedCommandPattern: /^(javac?\s+.*|java\s+-version|python3?\s+.*)/i,
+        expectedCommandPatternByOS: {
+          windows: /^(python3?\s+.*|pip\s+.*|ruby\s+.*|bundle\s+.*|gem\s+.*)/i,
+          macos: /^(python3?\s+.*|pip\s+.*|ruby\s+.*|bundle\s+.*|gem\s+.*)/i,
+          kasm: /^(python3?\s+.*|pip\s+.*|ruby\s+.*|bundle\s+.*|gem\s+.*)/i,
+          linux: /^(python3?\s+.*|pip\s+.*|ruby\s+.*|bundle\s+.*|gem\s+.*)/i,
+        },
         exampleCommand: 'java -version',
+        exampleCommandByOS: {
+          windows: 'python --version',
+          macos: 'python --version',
+          kasm: 'python --version',
+          linux: 'python --version',
+        },
         funFact: "Fun fact: Java was originally called 'Oak', named after a tree outside its creator's office.",
       },
       {
@@ -169,10 +263,33 @@ class GameLevelCsPath4Toolchain {
         position: { x: width * 0.76, y: height * 0.24 },
         narrativeHook: 'The tower needs a properly configured editor before it will respond.',
         instructions: [
-          'Install VS Code or Cursor (and WSL if on Windows).',
+          'Install VS Code or Cursor for your Linux distro (package manager or .deb/.rpm download).',
           "Open this project's folder in it.",
           'Install one recommended extension.',
         ],
+        instructionsByOS: {
+          windows: [
+            'Install VS Code for Windows from code.visualstudio.com, keeping the default options.',
+            'From your WSL Ubuntu terminal, cd into your project folder and run code . to open it (VS Code installs the WSL extension automatically).',
+            'Install one recommended extension.',
+          ],
+          macos: [
+            'Download and install VS Code for Mac from code.visualstudio.com.',
+            'Open a new Terminal, cd into your project folder, and run code . to open it.',
+            'Install one recommended extension.',
+          ],
+          kasm: [
+            'Open a new Terminal in your Kasm Workspace.',
+            'cd into your project folder, e.g. cd opencs/student.',
+            'Activate your environment: source venv/bin/activate.',
+            'Open it in VS Code with code ..',
+          ],
+          linux: [
+            'Install VS Code from code.visualstudio.com (choose the Debian/Ubuntu package and default options).',
+            'Install Chrome from google.com/chrome/browser-tools (choose the Debian package).',
+            'Open a Terminal, cd into your project folder, and run code . to open it.',
+          ],
+        },
         expectedCommandPattern: /^code\s+\.?/i,
         exampleCommand: 'code .',
         funFact: 'Fun fact: VS Code is built on Electron — the same framework behind Slack and Discord.',
@@ -187,13 +304,43 @@ class GameLevelCsPath4Toolchain {
         position: { x: width * 0.16, y: height * 0.72 },
         narrativeHook: "The hall won't record your work until it knows who you are.",
         instructions: [
-          'Run git --version to confirm git is installed.',
+          'Run git --version to confirm git is installed (install with sudo apt install git if missing).',
           'Set your name: git config --global user.name "Your Name".',
           'Set your email: git config --global user.email you@example.com.',
           'Run git init in a folder.',
         ],
+        instructionsByOS: {
+          windows: [
+            'Install Git Credential Manager (GCM) from git-scm.com/downloads/win, keeping the default options.',
+            'In your WSL Ubuntu terminal, wire it up: git config --global credential.helper "/mnt/c/Program Files/Git/mingw64/bin/git-credential-manager.exe".',
+            'Set your name: git config --global user.name "Your Name".',
+            'Set your email: git config --global user.email you@example.com.',
+          ],
+          macos: [
+            'Run git --version to confirm git is installed (install Homebrew from brew.sh first if missing, then brew install git).',
+            './scripts/activate.sh prompts for your Git UID and personal email and sets them for you.',
+            'Confirm it worked: git config --global --list.',
+          ],
+          kasm: [
+            'Open a Terminal in your Kasm Workspace.',
+            'Run git --version to confirm git is installed (Kasm images ship with it preinstalled).',
+            './scripts/activate.sh prompts for your Git UID and personal email and sets them for you.',
+            'Confirm it worked: git config --global --list.',
+          ],
+          linux: [
+            'Install git: sudo apt update, then sudo apt install git.',
+            './scripts/activate.sh prompts for your Git UID and personal email and sets them for you.',
+            'Confirm it worked: git config --global --list.',
+          ],
+        },
         expectedCommandPattern: /^git\s+(config|init|--version)/i,
         exampleCommand: 'git init',
+        exampleCommandByOS: {
+          windows: 'git config --global credential.helper "/mnt/c/Program Files/Git/mingw64/bin/git-credential-manager.exe"',
+          macos: 'git config --global --list',
+          kasm: 'git config --global --list',
+          linux: 'git config --global --list',
+        },
         funFact: 'Fun fact: Linus Torvalds wrote Git in 2005 — in about a weekend — to manage Linux kernel development.',
       },
       {
@@ -207,11 +354,39 @@ class GameLevelCsPath4Toolchain {
         narrativeHook: 'No signal passes the arch without an authenticated connection.',
         instructions: [
           'Confirm you have a GitHub account.',
-          'Set up SSH key or token auth.',
+          'Set up SSH key or token auth (ssh-keygen -t ed25519).',
           'Clone the class starter repo with git clone.',
         ],
+        instructionsByOS: {
+          windows: [
+            'Confirm you have a GitHub account.',
+            'In your WSL Ubuntu terminal, make a workspace: mkdir opencs && cd opencs.',
+            'Clone the class repo: git clone https://github.com/Open-Coding-Society/portfolio.git.',
+          ],
+          kasm: [
+            'Confirm you have a GitHub account.',
+            'In your Kasm Terminal, make a workspace: mkdir opencs && cd opencs.',
+            'Clone the class repo: git clone https://github.com/Open-Coding-Society/student.git.',
+          ],
+          macos: [
+            'Confirm you have a GitHub account.',
+            'In Terminal, make a workspace: mkdir opencs && cd opencs.',
+            'Clone the class repo: git clone https://github.com/Open-Coding-Society/portfolio.git.',
+          ],
+          linux: [
+            'Confirm you have a GitHub account.',
+            'In Terminal, make a workspace: mkdir opencs && cd opencs.',
+            'Clone the class repo: git clone https://github.com/Open-Coding-Society/portfolio.git.',
+          ],
+        },
         expectedCommandPattern: /^git\s+clone\s+\S+/i,
         exampleCommand: 'git clone <starter-repo-url>',
+        exampleCommandByOS: {
+          windows: 'git clone https://github.com/Open-Coding-Society/portfolio.git',
+          kasm: 'git clone https://github.com/Open-Coding-Society/student.git',
+          macos: 'git clone https://github.com/Open-Coding-Society/portfolio.git',
+          linux: 'git clone https://github.com/Open-Coding-Society/portfolio.git',
+        },
         funFact: 'Fun fact: GitHub hosts over 100 million repositories — more code than any library in human history.',
       },
       {
@@ -227,7 +402,45 @@ class GameLevelCsPath4Toolchain {
           "Run the class's build command (e.g. make, mvn package, or ./gradlew build).",
           'Confirm it completes successfully.',
         ],
+        instructionsByOS: {
+          windows: [
+            'cd into the cloned portfolio/ folder in your WSL Ubuntu terminal.',
+            'Run ./scripts/activate_ubuntu.sh (enter your WSL Ubuntu password when prompted).',
+            'Run ./scripts/activate.sh (enter your Git username and email when prompted).',
+            'Run ./scripts/venv.sh to build the Python virtual environment.',
+          ],
+          kasm: [
+            'cd into the cloned student/ folder in your Kasm Terminal.',
+            'Run ./scripts/activate.sh (enter your Git UID and personal email when prompted).',
+            'Run ./scripts/venv.sh to build the Python virtual environment.',
+            'Run code . to open the project in VS Code.',
+          ],
+          macos: [
+            'cd into the cloned portfolio/ folder in Terminal.',
+            'Run ./scripts/activate_macos.sh.',
+            'Run ./scripts/activate.sh (enter your Git UID and personal email when prompted).',
+            'Run ./scripts/venv.sh to build the Python virtual environment.',
+          ],
+          linux: [
+            'cd into the cloned portfolio/ folder in Terminal.',
+            'Run ./scripts/activate_ubuntu.sh (all Linux variants can use the Ubuntu script).',
+            'Run ./scripts/activate.sh (enter your Git UID and personal email when prompted).',
+            'Run ./scripts/venv.sh to configure tools for the project.',
+          ],
+        },
         expectedCommandPattern: /^(mvn|gradle|\.\/gradlew|make)\s+\S+/i,
+        expectedCommandPatternByOS: {
+          windows: /^\.\/scripts\/\S+/i,
+          kasm: /^\.\/scripts\/\S+/i,
+          macos: /^\.\/scripts\/\S+/i,
+          linux: /^\.\/scripts\/\S+/i,
+        },
+        exampleCommandByOS: {
+          windows: './scripts/venv.sh',
+          kasm: './scripts/venv.sh',
+          macos: './scripts/venv.sh',
+          linux: './scripts/venv.sh',
+        },
         exampleCommand: 'make',
         funFact: "Fun fact: Maven's name comes from a word for 'accumulator of knowledge' — fitting for a build tool.",
       },
@@ -248,6 +461,32 @@ class GameLevelCsPath4Toolchain {
           'Make one commit.',
           'Push it.',
         ],
+        instructionsByOS: {
+          windows: [
+            'From your WSL Ubuntu terminal, restart into your project: cd opencs/portfolio.',
+            'Activate your environment: source venv/bin/activate.',
+            'Open it in your editor: code ..',
+            'Make one commit and run git push.',
+          ],
+          kasm: [
+            'From your Kasm Terminal, restart into your project: cd opencs/student.',
+            'Activate your environment: source venv/bin/activate.',
+            'Open it in your editor: code ..',
+            'Make one commit and run git push.',
+          ],
+          macos: [
+            'From Terminal, restart into your project: cd opencs/portfolio.',
+            'Activate your environment: source venv/bin/activate.',
+            'Open it in your editor: code ..',
+            'Make one commit and run git push.',
+          ],
+          linux: [
+            'Open a new Terminal (close the old one) and restart into your project: cd opencs/portfolio.',
+            'Activate your environment: source venv/bin/activate.',
+            'Open it in your editor: code ..',
+            'Make one commit and run git push.',
+          ],
+        },
         expectedCommandPattern: /^git\s+push/i,
         exampleCommand: 'git push',
         funFact: 'Every station verified end-to-end — your development environment is complete.',
@@ -548,7 +787,12 @@ class GameLevelCsPath4Toolchain {
           },
         ] : []),
         {
-          label: '🔄 Reset Toolchain Trail',
+          label: '� Change Operating System',
+          title: 'Switch the OS used for station instructions/commands',
+          onClick: () => level._promptOSSelection(true),
+        },
+        {
+          label: '�🔄 Reset Toolchain Trail',
           title: 'Clear only this level\'s station progress',
           danger: true,
           onClick: () => level._showResetModal(),
@@ -685,7 +929,7 @@ class GameLevelCsPath4Toolchain {
 
       this._stationTrialOpen = true;
       const trial = new StationVerificationTrial({
-        station,
+        station: this._localizeStation(station),
         onComplete: async ({ stationId: completedId }) => {
           this._stationTrialOpen = false;
           this.completedStations.add(completedId);
@@ -707,6 +951,79 @@ class GameLevelCsPath4Toolchain {
         },
       });
       trial.start();
+    };
+
+    /**
+     * Section: OS-specific instruction lookup, used to localize a station
+     * before it's shown/verified. Falls back to the station's base fields
+     * (written Linux-first) when no OS-specific override exists.
+     */
+    this._localizeStation = function (station) {
+      const os = this.selectedOS || 'linux';
+      return {
+        ...station,
+        instructions: station.instructionsByOS?.[os] || station.instructions,
+        exampleCommand: station.exampleCommandByOS?.[os] || station.exampleCommand,
+        expectedCommandPattern: station.expectedCommandPatternByOS?.[os] || station.expectedCommandPattern,
+      };
+    };
+
+    /**
+     * Section: OS picker modal — shown the first time a student enters the
+     * trail (see initialize()) and re-openable via the sidebar action.
+     */
+    this._promptOSSelection = function (forceShow = false) {
+      if (!forceShow && this.selectedOS) return;
+
+      const overlay = document.createElement('div');
+      overlay.style.cssText = [
+        'position:fixed', 'inset:0', 'z-index:100060',
+        'background:rgba(0,0,0,0.78)',
+        'display:flex', 'align-items:center', 'justify-content:center',
+      ].join(';');
+
+      const optionBtnStyle = [
+        'display:block', 'width:100%', 'padding:10px 0',
+        'border-radius:6px', 'border:1px solid #38bdf8',
+        'background:#0b1026', 'color:#dbeafe',
+        'font-family:"Courier New",monospace', 'font-size:0.92em',
+        'cursor:pointer',
+      ].join(';');
+
+      const box = document.createElement('div');
+      box.style.cssText = [
+        'background:#04060f', 'border:1.5px solid #38bdf8', 'padding:26px 30px',
+        'border-radius:10px', 'font-family:"Courier New",monospace', 'color:#dbeafe',
+        'max-width:380px', 'width:90%', 'box-sizing:border-box',
+      ].join(';');
+
+      const optionButtonsHtml = OS_OPTIONS.map((opt) => `
+        <button class="tt-os-option" data-os="${opt.id}" style="${optionBtnStyle}">${opt.icon} ${opt.label}</button>
+      `).join('');
+
+      box.innerHTML = `
+        <div style="font-size:1.05em;font-weight:bold;margin-bottom:10px;">💻 Choose Your Operating System</div>
+        <div style="font-size:0.86em;line-height:1.6;margin-bottom:18px;">
+          The Toolchain Trail has you run real terminal commands. Pick the
+          system you're working on so each station shows the right steps.
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          ${optionButtonsHtml}
+        </div>`;
+
+      overlay.appendChild(box);
+      document.body.appendChild(overlay);
+
+      box.querySelectorAll('.tt-os-option').forEach((btn) => {
+        btn.onclick = () => {
+          const osId = btn.getAttribute('data-os');
+          this.selectedOS = osId;
+          try { localStorage.setItem(OS_STORAGE_KEY, osId); } catch (err) { /* storage unavailable */ }
+          overlay.remove();
+          const label = OS_OPTIONS.find((o) => o.id === osId)?.label || osId;
+          this.showToast(`✦ Toolchain Trail set for ${label}`);
+        };
+      });
     };
 
     /**
@@ -792,6 +1109,10 @@ class GameLevelCsPath4Toolchain {
    * Level initialization: bind gatekeeper reactions, seed sidebar, start stuck-check loop.
    */
   initialize() {
+    // First thing the student sees on the trail: pick an OS (skipped if
+    // already saved from a previous visit).
+    this._promptOSSelection();
+
     const objects = this.gameEnv?.gameObjects || [];
     const gatekeepers = objects.filter((obj) => this._stationGatekeeperIds?.includes(obj?.spriteData?.id));
     gatekeepers.forEach((gk) => {
