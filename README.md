@@ -154,6 +154,20 @@ Jupyter/Java), or `FAIL` with a remediation hint. Exit code `0` means you're
 ready to go; exit code `1` means something needs fixing before you continue. A
 full report is also written to `verifyTools.md` in the repo root.
 
+### macOS Terminal Setup Helper (optional)
+
+On macOS, you can opt into a live terminal companion that watches setup commands
+(`brew`, `xcode-select`, `java`, `git`, `python3`, `pip3`, `code`, ...) as you run them
+and prints an inline fix the moment one fails. It's local-only — no network calls, no
+browser/game integration, and it never runs for commands outside that list. Add one
+line to `~/.zshrc` to enable it:
+
+```bash
+source /absolute/path/to/pages/scripts/mac_setup_agent.zsh
+```
+
+Run `mac_agent_pause` / `mac_agent_resume` in a shell to temporarily turn it off/on.
+
 ### Jupyter Kernels
 
 To run many of the IPYNB files you will need to install Jupyter kernels for the languages you want to use. Here are the most common and recommended kernels:
