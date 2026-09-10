@@ -160,3 +160,10 @@ while preserving all critical instructions. The agent must still communicate wit
 
 * **你需要它吗 (YAGNI)：** 除非现在需要，否则不要构建功能。避免推测性的泛化。
 * 仅在保证正确性后才进行优化（优化前进行性能分析）。
+
+## Linux terminal setup assistance
+
+For Linux tool installation or virtual-environment troubleshooting, follow
+[the Linux setup assistant guide](docs/linux-setup-agent.md). Run
+`scripts/linux_setup_agent.py` in the affected Linux terminal; local Mac
+checks are not evidence about another user's Linux system.

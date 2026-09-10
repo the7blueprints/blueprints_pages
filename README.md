@@ -471,3 +471,8 @@ UDL is not a method but a **design lens** to make learning **accessible and mean
 | **Depth & Growth** | Fink | Human, affective, reflective development |
 | **Access & Design** | UDL | Inclusive and flexible access to all learners |
 | **Workflow & Rhythm** | Agile + Design Thinking + Gagné | Iteration, planning, feedback, reflection ceremonies |
+
+## Linux terminal setup feedback
+
+See [Linux setup assistant](docs/linux-setup-agent.md) for Python environment setup,
+local tool checks, and evidence-based troubleshooting of terminal errors.
