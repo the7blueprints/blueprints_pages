@@ -746,14 +746,13 @@ class GameLevelCsPath4Toolchain {
     };
 
     /**
-     * Section: persistent corner button — lets a student reopen the OS picker
-     * (e.g. if they picked the wrong OS) without hunting through the sidebar.
+     * Section: persistent corner button — doubles as a live "OS: <choice>"
+     * indicator and lets a student reopen the picker without hunting the sidebar.
      */
     this._ensureOSButton = function () {
       if (this._osButtonEl) return;
       const button = document.createElement('button');
       button.type = 'button';
-      button.textContent = '💻 Change OS';
       button.title = 'Switch the operating system used for station instructions';
       button.style.cssText = `
         position: fixed; bottom: 20px; left: 20px;
@@ -770,11 +769,19 @@ class GameLevelCsPath4Toolchain {
       button.onclick = () => this._promptOSSelection(true);
       document.body.appendChild(button);
       this._osButtonEl = button;
+      this._updateOSButton();
     };
 
     this._removeOSButton = function () {
       if (this._osButtonEl?.parentNode) this._osButtonEl.parentNode.removeChild(this._osButtonEl);
       this._osButtonEl = null;
+    };
+
+    /** Refreshes the corner button's label to reflect the current OS selection. */
+    this._updateOSButton = function () {
+      if (!this._osButtonEl) return;
+      const opt = OS_OPTIONS.find((o) => o.id === this.selectedOS);
+      this._osButtonEl.textContent = opt ? `${opt.icon} OS: ${opt.label}` : '💻 Choose OS';
     };
 
     /**
@@ -1052,6 +1059,7 @@ class GameLevelCsPath4Toolchain {
           this.selectedOS = osId;
           try { localStorage.setItem(OS_STORAGE_KEY, osId); } catch (err) { /* storage unavailable */ }
           overlay.remove();
+          this._updateOSButton();
           const label = OS_OPTIONS.find((o) => o.id === osId)?.label || osId;
           this.showToast(`✦ Toolchain Trail set for ${label}`);
         };

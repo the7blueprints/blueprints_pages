@@ -88,7 +88,7 @@ sticky_rank: 1
         <option value="2026-2027" selected>2026/2027</option>
         <option value="2025-2026">2025/2026</option>
       </select>
-      <a href="{% post_url 2026-06-01-README-capstone %}" class="ocs__btn" title="Open Capstone Home Documentation">📄 README</a>
+      <a href="{% post_url capstone/2026-06-01-README-capstone %}" class="ocs__btn" title="Open Capstone Home Documentation">📄 README</a>
       <a href="/capstone/games/" class="ocs__btn alert-green fill" title="Browse all OCS Games">🎮 Games Directory</a>
     </div>
   </div>
@@ -383,11 +383,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
    <!-- RFID + Camera-Correlated Classroom Presence -->
    <div class="ocs__grid-cell  capstone-item CSH" data-year="2026-2027">
-     <a href="{% post_url capstone/RFID/2026-09-12-rfid-presence-capstone %}">
+     <a href="{% post_url capstone/Presence/2026-09-12-presence-system-capstone %}">
        <div class="w-28 h-28 flex items-center justify-center bg-blue-900 text-white text-2xl font-bold rounded" style="background: linear-gradient(135deg, #3b82f6, #06b6d4);">RFID</div>
      </a>
      <div>
-       <h3 class="text-lg font-semibold"><a href="{% post_url capstone/RFID/2026-09-12-rfid-presence-capstone %}">RFID + Camera-Correlated Classroom Presence</a></h3>
+       <h3 class="text-lg font-semibold"><a href="{% post_url capstone/Presence/2026-09-12-presence-system-capstone %}">RFID + Camera-Correlated Classroom Presence</a></h3>
        <p class="text-sm text-gray-700">A low-cost Raspberry Pi UHF RFID system that tracks device presence at the doorway and correlates it with an existing face-scanning camera system to determine true student presence, period by period.</p>
        <p class="text-xs text-gray-500 mt-2">Team: Ruta Sirdeshmukh, Vibha Mandayam, Kush Shah</p>
      </div>
@@ -537,11 +537,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
    <!-- Greppers -->
    <div class="ocs__grid-cell  capstone-item CSP">
-       <a href="{% post_url 2026-03-04-greppers-capstone %}">
+       <a href="{% post_url capstone/2026-03-04-greppers-capstone %}">
            <div class="w-28 h-28 flex items-center justify-center bg-blue-900 text-white text-3xl font-bold rounded">SFI</div>
        </a>
        <div>
-           <h3 class="text-lg font-semibold"><a href="{% post_url 2026-03-04-greppers-capstone %}">SFI Foundation</a></h3>
+           <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-03-04-greppers-capstone %}">SFI Foundation</a></h3>
            <p class="text-sm text-gray-700">SFI Foundation web modernization — ML-powered spec search, QR-based manufacturer verification, and a mobile-first UI redesign for motorsports safety certification.</p>
            <p class="text-xs text-gray-500 mt-2">Team: Aditya Srivastava, Dhyan Soni, Aaryav Lal</p>
        </div>
@@ -550,11 +550,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
   <!-- Oasis Capstone -->
   <div class="ocs__grid-cell  capstone-item CSA">
-      <a href="{% post_url 2026-03-04-oasis-community-capstone %}">
+      <a href="{% post_url capstone/2026-03-04-oasis-community-capstone %}">
           <img src="/images/capstone/oasis-logo.png" alt="Oasis Capstone" class="w-28 h-28 object-cover rounded" />
       </a>
       <div>
-          <h3 class="text-lg font-semibold"><a href="{% post_url 2026-03-04-oasis-community-capstone %}">Oasis</a></h3>
+          <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-03-04-oasis-community-capstone %}">Oasis</a></h3>
           <p class="text-sm text-gray-700">A community building game focused on growing individual relationships and creating a community from that. This project is in relation to the non profit San Diego Oasis</p>
           <p class="text-xs text-gray-500 mt-2">Team: Spencer, Nora</p>
       </div>
@@ -563,11 +563,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
   <!-- Kora Capstone -->
   <div class="ocs__grid-cell  capstone-item CSA">
-      <a href="{% post_url 2026-02-06-kora-capstone %}">
+      <a href="{% post_url capstone/2026-02-06-kora-capstone %}">
           <img src="/images/capstone/kora.png" alt="Kora Capstone" class="w-28 h-28 object-cover rounded" />
       </a>
       <div>
-          <h3 class="text-lg font-semibold"><a href="{% post_url 2026-02-06-kora-capstone %}">Kora Capstone</a></h3>
+          <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-02-06-kora-capstone %}">Kora Capstone</a></h3>
           <p class="text-sm text-gray-700">An AI-native property maintenance operating system that automates tenant requests, triages problems, matches vendors, and keeps operations moving without manual coordination.</p>
           <p class="text-xs text-gray-500 mt-2">Team: Manas, Akshay</p>
       </div>
@@ -576,11 +576,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
    <!-- Pirna Pages -->
    <div class="ocs__grid-cell  capstone-item CSA">
-       <a href="{% post_url 2026-02-13-pirna-capstone %}">
+       <a href="{% post_url capstone/2026-02-13-pirna-capstone %}">
            <img src="/images/capstone/pirna_logo.png" alt="AutoTriage - Triage project" class="w-28 h-28 object-cover rounded" />
        </a>
        <div>
-           <h3 class="text-lg font-semibold"><a href="{% post_url 2026-02-13-pirna-capstone %}">Pirna</a></h3>
+           <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-02-13-pirna-capstone %}">Pirna</a></h3>
            <p class="text-sm text-gray-700">Improve group-level communication and engagement on OCS through an integrated messaging system, while generating practical design principles for scalable, analytics-informed collaborative tools in educational platforms.</p>
            <p class="text-xs text-gray-500 mt-2">Team: Nikhil, Rohan, Adi</p>
        </div>
@@ -614,11 +614,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
    <!-- Poway NEC -->
    <div class="ocs__grid-cell  capstone-item CSP">
-       <a href="{% post_url 2026-03-06-powaynec-capstone %}">
+       <a href="{% post_url capstone/2026-03-06-powaynec-capstone %}">
            <img src="/images/capstone/powaynec-logo-white.png" alt="Poway NEC logo" class="w-56 h-32 object-contain rounded bg-emerald-950 p-2" />
        </a>
        <div>
-           <h3 class="text-lg font-semibold"><a href="{% post_url 2026-03-06-powaynec-capstone %}">Poway Neighborhood Emergency Corps</a></h3>
+           <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-03-06-powaynec-capstone %}">Poway Neighborhood Emergency Corps</a></h3>
            <p class="text-sm text-gray-700">Poway NEC capstone updates for preparedness access, including live risk information, emergency learning games, a chatbot, and account tools for volunteer coordination.</p>
            <p class="text-xs text-gray-500 mt-2">Team: Aneesh, Ethan, Samarth</p>
        </div>
@@ -626,11 +626,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
    <!-- HawkHub -->
    <div class="ocs__grid-cell  capstone-item CSA">
-       <a href="{% post_url 2026-02-06-hawkhub %}">
+       <a href="{% post_url capstone/2026-02-06-hawkhub %}">
            <img src="/images/capstone/hawkhub.png" alt="HawkHub" class="w-28 h-28 object-cover rounded" />
        </a>
        <div>
-           <h3 class="text-lg font-semibold"><a href="{% post_url 2026-02-06-hawkhub %}">HawkHub</a></h3>
+           <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-02-06-hawkhub %}">HawkHub</a></h3>
            <p class="text-sm text-gray-700">A club management and community platform designed to streamline student-led club operations, engagement tracking, and leadership development.</p>
            <p class="text-xs text-gray-500 mt-2">Team: Avika, Soni, Samhita</p>
        </div>
@@ -638,11 +638,11 @@ document.addEventListener('DOMContentLoaded', function(){
    
    <!-- Doing Exceptional Deeds -->
    <div class="ocs__grid-cell  capstone-item CSP">
-       <a href="{% post_url 2026-03-09-doing-exceptional-deeds %}">
+       <a href="{% post_url capstone/2026-03-09-doing-exceptional-deeds %}">
            <img src="/images/capstone/doing_exceptional_deeds.png" alt="Doing Exceptional Deeds - D.A.D. Non-profit Extension" class="w-28 h-28 object-cover rounded" />
        </a>
        <div>
-           <h3 class="text-lg font-semibold"><a href="{% post_url 2026-03-09-doing-exceptional-deeds %}">Doing Exceptional Deeds</a></h3>
+           <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-03-09-doing-exceptional-deeds %}">Doing Exceptional Deeds</a></h3>
            <p class="text-sm text-gray-700">An extension for the Doing Exceptional Deeds non-profit website, uplifting individuals and strengthening communities through education-first programs.</p>
            <p class="text-xs text-gray-500 mt-2">Team: William Windle, Ethan Wong, Nicolas Diaz</p>
        </div>
@@ -650,11 +650,11 @@ document.addEventListener('DOMContentLoaded', function(){
                                     
    <!-- ACS Cancer Infograph (CSP) -->
    <div class="ocs__grid-cell  capstone-item CSP">
-       <a href="{% post_url 2026-03-05-acs-cancer-infograph %}">
+       <a href="{% post_url capstone/2026-03-05-acs-cancer-infograph %}">
            <img src="/images/capstone/acs_logo.png" alt="ACS Cancer Infograph — Interactive Body Map for Cancer Information" class="w-28 h-28 object-cover rounded" />
        </a>
        <div>
-           <h3 class="text-lg font-semibold"><a href="{% post_url 2026-03-05-acs-cancer-infograph %}">ACS Cancer Infograph</a></h3>
+           <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-03-05-acs-cancer-infograph %}">ACS Cancer Infograph</a></h3>
            <p class="text-sm text-gray-700">Interactive human-body diagram consolidating ACS cancer information into one visual interface, letting users navigate by body region.</p>
            <p class="text-xs text-gray-500 mt-2">Team: Aashika, Anwita, Varada</p>
        </div>
@@ -663,11 +663,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
    <!-- Poway Woman's Club Capstone (CSP) -->
    <div class="ocs__grid-cell  capstone-item CSP">
-       <a href="{% post_url 2026-03-09-poway-womans-club %}">
+       <a href="{% post_url capstone/2026-03-09-poway-womans-club %}">
            <img src="/images/capstone/pwc_logo.png" alt="Poway Woman's Club — Website Refurbishment" class="w-28 h-28 object-cover rounded" />
        </a>
        <div>
-           <h3 class="text-lg font-semibold"><a href="{% post_url 2026-03-09-poway-womans-club %}">Poway Woman's Club</a></h3>
+           <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-03-09-poway-womans-club %}">Poway Woman's Club</a></h3>
            <p class="text-sm text-gray-700">Modernizing a 65-year-old community nonprofit's web presence with member portals, online payments, and a fresh UI — while preserving the heart of the original site.</p>
            <p class="text-xs text-gray-500 mt-2">Team: Evan S, Maya D, Cyrus Z</p>
        </div>
@@ -675,11 +675,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
    <!-- UESL Foundation Capstone (CSP) -->
    <div class="ocs__grid-cell  capstone-item CSP">
-       <a href="{% post_url 2026-03-05-uesl-capstone %}">
+       <a href="{% post_url capstone/2026-03-05-uesl-capstone %}">
            <img src="/images/capstone/uesl_foundation.svg" alt="Unified Esports League Foundation logo — shield with game controller" class="w-28 h-28 object-cover rounded" />
        </a>
        <div>
-           <h3 class="text-lg font-semibold"><a href="{% post_url 2026-03-05-uesl-capstone %}">UESL Foundation</a></h3>
+           <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-03-05-uesl-capstone %}">UESL Foundation</a></h3>
            <p class="text-sm text-gray-700">Built an AI chatbot, accessible game engine with 8 IDD-friendly modes, and a social platform to extend UESL's reach for individuals with intellectual and developmental disabilities across San Diego.</p>
            <p class="text-xs text-gray-500 mt-2">Team: Sathwik Kintada, Rudra B Joshi, Darshan</p>
        </div>
@@ -687,11 +687,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
    <!-- DeFlock SD Capstone (CSP) -->
    <div class="ocs__grid-cell  capstone-item CSP">
-       <a href="{% post_url 2026-03-06-deflock-sd %}">
+       <a href="{% post_url capstone/2026-03-06-deflock-sd %}">
            <img src="/images/capstone/deflock-sd.png" alt="DeFlock SD - Fighting Mass Surveillance" class="w-28 h-28 object-cover rounded" />
        </a>
        <div>
-           <h3 class="text-lg font-semibold"><a href="{% post_url 2026-03-06-deflock-sd %}">DeFlock SD</a></h3>
+           <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-03-06-deflock-sd %}">DeFlock SD</a></h3>
            <p class="text-sm text-gray-700">Crowdsourced map and tools to document ALPR surveillance in San Diego and support community resistance.</p>
            <p class="text-xs text-gray-500 mt-2">Team: TheFlockers (Adhav, Lucas, Perry)</p>
        </div>
@@ -699,11 +699,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
    <!-- Soroptimist International of Poway (CSP) -->
    <div class="ocs__grid-cell  capstone-item CSP">
-       <a href="{% post_url 2026-03-08-sip-infograph %}">
+       <a href="{% post_url capstone/2026-03-08-sip-infograph %}">
            <img src="/images/sip/sip_logo.png" alt="Soroptimist International of Poway - Site Analysis" class="w-28 h-28 object-cover rounded" />
        </a>
        <div>
-           <h3 class="text-lg font-semibold"><a href="{% post_url 2026-03-08-sip-infograph %}">Soroptimist International of Poway</a></h3>
+           <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-03-08-sip-infograph %}">Soroptimist International of Poway</a></h3>
            <p class="text-sm text-gray-700">We analyzed sipoway.com to document the organization's programs and recommend UI improvements that help donors, volunteers, and program applicants take action.</p>
            <p class="text-xs text-gray-500 mt-2">Team: Anishka Sanghvi, Michelle Ji, Krishna Visvanath</p>
        </div>
@@ -711,11 +711,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
    <!-- Sentri (CSP) -->
    <div class="ocs__grid-cell  capstone-item CSP">
-       <a href="{% post_url 2026-03-04-sentri-capstone %}">
+       <a href="{% post_url capstone/2026-03-04-sentri-capstone %}">
            <img src="/images/capstone/sentri.png" alt="Sentri" class="w-28 h-28 object-cover rounded" />
        </a>
        <div>
-           <h3 class="text-lg font-semibold"><a href="{% post_url 2026-03-04-sentri-capstone %}">Sentri</a></h3>
+           <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-03-04-sentri-capstone %}">Sentri</a></h3>
            <p class="text-sm text-gray-700">A comprehensive recovery ecosystem for the Poway Recovery Center that utilizes an intelligent guide to match users with specialized support programs, provides personalized meeting schedules, and tracks long-term sobriety milestones through a secure, high-fidelity user profile/dashboard</p>
            <p class="text-xs text-gray-500 mt-2">Team: Lilian Wu, Anika Marathe, Jaynee Chauhan</p>
         </div>
@@ -723,11 +723,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
    <!-- Integra (CSP 26-27) -->
    <div class="ocs__grid-cell  capstone-item CSP" data-year="2026-2027">
-       <a href="{% post_url 2026-03-04-sentri-capstone %}">
+       <a href="{% post_url capstone/2026-03-04-sentri-capstone %}">
            <img src="/images/capstone/sentri.png" alt="Sentri" class="w-28 h-28 object-cover rounded" />
        </a>
        <div>
-           <h3 class="text-lg font-semibold"><a href="{% post_url 2026-03-04-sentri-capstone %}">Integra</a></h3>
+           <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-03-04-sentri-capstone %}">Integra</a></h3>
            <p class="text-sm text-gray-700">An AI-driven recovery ecosystem for the Poway Recovery Center that provides users with access to specialized support programs and meeting schedules at the center while also tracking long-term sobriety milestones through a secure, high-fidelity user profile/dashboard.</p>
            <p class="text-xs text-gray-500 mt-2">Team: Adya Shipekar, Anika Seksaria, Jailene Tang</p>
        </div>
@@ -735,11 +735,11 @@ document.addEventListener('DOMContentLoaded', function(){
    
    <!-- Friends of the Poway Library  (CSP) -->
    <div class="ocs__grid-cell  capstone-item CSP">
-       <a href="{% post_url 2026-03-09-poway-library %}">
+       <a href="{% post_url capstone/2026-03-09-poway-library %}">
            <img src="/images/capstone/poway_library.png" alt="Friends of the Poway Library" class="w-28 h-28 object-cover rounded" />
        </a>
        <div>
-           <h3 class="text-lg font-semibold"><a href="{% post_url 2026-03-09-poway-library %}">Friends of the Poway Library</a></h3>
+           <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-03-09-poway-library %}">Friends of the Poway Library</a></h3>
            <p class="text-sm text-gray-700">Rebuilding the Friends of the Poway Library website with a live events calendar, volunteer portal, and donation flow.</p>
            <p class="text-xs text-gray-500 mt-2">Team: Shayan Bhatti, Arnav Pallapotu, Tanay Paranjpe</p>
        </div>
@@ -747,11 +747,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
    <!-- DSA Website Redesign (CSP) -->
    <div class="ocs__grid-cell  capstone-item CSP">
-       <a href="{% post_url 2026-03-09-dsa-website-redesign-blog %}">
+       <a href="{% post_url capstone/2026-03-09-dsa-website-redesign-blog %}">
            <img src="/images/capstone/dsa_redesign.svg" alt="DSA Website Redesign — Deputy Sheriffs' Association of San Diego County" class="w-28 h-28 object-cover rounded" />
        </a>
        <div>
-           <h3 class="text-lg font-semibold"><a href="{% post_url 2026-03-09-dsa-website-redesign-blog %}">DSA Website Redesign</a></h3>
+           <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-03-09-dsa-website-redesign-blog %}">DSA Website Redesign</a></h3>
            <p class="text-sm text-gray-700">Redesign proposal for the Deputy Sheriffs' Association of San Diego County website — interactive dashboard, smart FAQ hub, and mega menu navigation.</p>
            <p class="text-xs text-gray-500 mt-2">Team: TheSprinters (Akhil, Neil, Moiz)</p>
        </div>
@@ -759,11 +759,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
    <!-- D.A.D. Website Redesign (CSP) -->
    <div class="ocs__grid-cell  capstone-item CSP">
-       <a href="{% post_url 2026-03-09-dad-website-redesign-blog %}">
+       <a href="{% post_url capstone/2026-03-09-dad-website-redesign-blog %}">
            <img src="/images/capstone/dad_redesign.svg" alt="D.A.D. Website Redesign — Doing Exceptional Deeds Nonprofit" class="w-28 h-28 object-cover rounded" />
        </a>
        <div>
-           <h3 class="text-lg font-semibold"><a href="{% post_url 2026-03-09-dad-website-redesign-blog %}">D.A.D. Website Redesign</a></h3>
+           <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-03-09-dad-website-redesign-blog %}">D.A.D. Website Redesign</a></h3>
            <p class="text-sm text-gray-700">Redesign proposal for the Doing Exceptional Deeds nonprofit — impact-driven homepage, donation flow with impact visualization, and dedicated program pages with registration.</p>
            <p class="text-xs text-gray-500 mt-2">Team: TheSprinters (Akhil, Neil, Moiz)</p>
        </div>
@@ -771,11 +771,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
    <!-- RCR: Poway-Midland Railroad Project -->
    <div class="ocs__grid-cell  capstone-item CSP">
-       <a href="{% post_url 2026-03-06-rcr-poway-midland-capstone %}">
+       <a href="{% post_url capstone/2026-03-06-rcr-poway-midland-capstone %}">
            <img src="https://static.vecteezy.com/system/resources/previews/034/949/404/non_2x/simple-steam-train-icon-illustration-design-steam-locomotive-symbol-template-vector.jpg" alt="RCR Poway-Midland Railroad Digital Experience" class="w-28 h-28 object-cover rounded" />
        </a>
        <div>
-           <h3 class="text-lg font-semibold"><a href="{% post_url 2026-03-06-rcr-poway-midland-capstone %}">RCR: Poway-Midland Railroad</a></h3>
+           <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-03-06-rcr-poway-midland-capstone %}">RCR: Poway-Midland Railroad</a></h3>
            <p class="text-sm text-gray-700">Modernizing the Poway-Midland Railroad website with an accounts system, interactive features, real-time train schedules, virtual tours, GPS tracking, and volunteer management tools.</p>
            <p class="text-xs text-gray-500 mt-2">Team: Rebecca, Cyrus, Rishabh</p>
        </div>
@@ -783,11 +783,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
     <!-- Poway Veteran's Organization-->
    <div class="ocs__grid-cell  capstone-item CSP">
-    <a href="{% post_url 2026-03-06-pvo-redesign-infographic %}">
+    <a href="{% post_url capstone/2026-03-06-pvo-redesign-infographic %}">
         <img src="/images/capstone/poway-veterans-logo.png" alt="Poway Veterans Organization" class="w-28 h-28 object-cover rounded" />
     </a>
     <div>
-        <h3 class="text-lg font-semibold"><a href="{% post_url 2026-03-06-pvo-redesign-infographic %}">Poway Veterans Organization</a></h3>
+        <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-03-06-pvo-redesign-infographic %}">Poway Veterans Organization</a></h3>
         <p class="text-sm text-gray-700">A guided 'Need Help? Start Here' pathway for the Poway Veterans Organization — simplified assistance application, document checklist, and urgent resource directory for veterans and families.</p>
         <p class="text-xs text-gray-500 mt-2">Team: API Pirates (Alice, Brandon, Aryan)</p>
     </div>
@@ -795,11 +795,11 @@ document.addEventListener('DOMContentLoaded', function(){
 </div>
   <!-- SD Auto (CSP) -->
    <div class="ocs__grid-cell  capstone-item CSP">
-       <a href="{% post_url 2026-04-15-sd-auto-capstone %}">
+       <a href="{% post_url capstone/2026-04-15-sd-auto-capstone %}">
            <div class="w-28 h-28 flex items-center justify-center bg-blue-600 text-white text-2xl font-bold rounded" style="background: linear-gradient(135deg, #3b82f6, #06b6d4);">SD Auto</div>
        </a>
        <div>
-           <h3 class="text-lg font-semibold"><a href="{% post_url 2026-04-15-sd-auto-capstone %}">SD Auto</a></h3>
+           <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-04-15-sd-auto-capstone %}">SD Auto</a></h3>
            <p class="text-sm text-gray-700">A full-stack intelligent routing platform that enhances daily commutes in San Diego through real-time traffic data, community hazard reporting, and AI-driven route optimization.</p>
            <p class="text-xs text-gray-500 mt-2">Team: Ahaan, Arnav</p>
        </div>
@@ -807,11 +807,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
   <!-- FOPS (2025-2026) -->
  <div class="ocs__grid-cell  capstone-item CSP" data-year="2025-2026">
-        <a href="{% post_url 2026-03-09-friends-of-poway-seniors-capstone %}">
+        <a href="{% post_url capstone/2026-03-09-friends-of-poway-seniors-capstone %}">
             <img src="/images/capstone/fops.png" alt="Friends of Poway Seniors" class="w-28 h-28 object-cover rounded" />
         </a>
         <div>
-            <h3 class="text-lg font-semibold"><a href="{% post_url 2026-03-09-friends-of-poway-seniors-capstone %}">Friends of Poway Seniors</a></h3>
+            <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-03-09-friends-of-poway-seniors-capstone %}">Friends of Poway Seniors</a></h3>
             <p class="text-sm text-gray-700"> This refurbished site transforms Friends of Poway Seniors into a clean, intuitive hub with interactive Bingo, AI chatbot ML-powered event predictor, and volunteer signup—all accessible from one unified interface. With simplified navigation and prominent donation buttons, the platform makes it easy for elderly users and caregivers to access essential services while honoring the organization's mission. </p>
             <p class="text-xs text-gray-500 mt-2">Team: Nitya, Vivian, Virginia</p>
         </div>
@@ -819,11 +819,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
   <!-- FOPS (2026-2027) -->
  <div class="ocs__grid-cell  capstone-item CSP" data-year="2026-2027">
-        <a href="{% post_url 2026-03-09-friends-of-poway-seniors-capstone %}">
+        <a href="{% post_url capstone/2026-03-09-friends-of-poway-seniors-capstone %}">
             <img src="/images/capstone/fops.png" alt="Friends of Poway Seniors" class="w-28 h-28 object-cover rounded" />
         </a>
         <div>
-            <h3 class="text-lg font-semibold"><a href="{% post_url 2026-03-09-friends-of-poway-seniors-capstone %}">Friends of Poway Seniors</a></h3>
+            <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-03-09-friends-of-poway-seniors-capstone %}">Friends of Poway Seniors</a></h3>
             <p class="text-sm text-gray-700"> This refurbished site transforms Friends of Poway Seniors into a clean, intuitive hub with interactive Bingo, AI chatbot ML-powered event predictor, and volunteer signup—all accessible from one unified interface. With simplified navigation and prominent donation buttons, the platform makes it easy for elderly users and caregivers to access essential services while honoring the organization's mission. </p>
             <p class="text-xs text-gray-500 mt-2">Team: Nitya, Vivian, Virginia</p>
         </div>
@@ -831,11 +831,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
  <!-- Dynamic Event Calendar (CSP) -->
    <div class="ocs__grid-cell  capstone-item CSP">
-       <a href="{% post_url 2026-03-08-Flask-and-Furious-capstone %}">
+       <a href="{% post_url capstone/2026-03-08-Flask-and-Furious-capstone %}">
            <img src="/images/capstone/sph.png" alt="Safe Passage Heals" class="w-28 h-28 object-cover rounded" />
        </a>
        <div>
-           <h3 class="text-lg font-semibold"><a href="{% post_url 2026-03-08-Flask-and-Furious-capstone %}">Safe Passage Heals - Media Management Tools and Interactive Recovery Simulation</a></h3>
+           <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-03-08-Flask-and-Furious-capstone %}">Safe Passage Heals - Media Management Tools and Interactive Recovery Simulation</a></h3>
            <p class="text-sm text-gray-700">A system of interactive web tools for Safe Passage Heals — centralizing community events through dynamic media management and an interactive simulation of the domestic violence recovery process.</p>
            <p class="text-xs text-gray-500 mt-2">Team: Ruchika Kench, Akshara Shankar, Avantika Chittari</p>
        </div>
@@ -843,11 +843,11 @@ document.addEventListener('DOMContentLoaded', function(){
    
    <!-- California Center For The Performing Arts Escondido (CSP, 2026/2027) -->
    <div class="ocs__grid-cell  capstone-item CSP" data-year="2026-2027">
-       <a href="{% post_url 2026-09-08-ccae-escondido-capstone %}">
+       <a href="{% post_url capstone/2026-09-08-ccae-escondido-capstone %}">
            <img src="/images/capstone/ccae.jpeg" alt="Cal Center For Arts Escondido Logo" class="w-28 h-28 object-contain rounded" />
        </a>
        <div>
-           <h3 class="text-lg font-semibold"><a href="{% post_url 2026-09-08-ccae-escondido-capstone %}">California Center For The Performing Arts Escondido</a></h3>
+           <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-09-08-ccae-escondido-capstone %}">California Center For The Performing Arts Escondido</a></h3>
            <p class="text-sm text-gray-700">This capstone project involves refurbishing the California Center For The Performing Arts Escondido website to be more streamlined, organized, and less busy. It will also overhaul the search feature to be more intelligent, introduce a dynamic and artistic design, and will replace generic walls of text with something more interactive.</p>
            <p class="text-xs text-gray-500 mt-2">Team: Mateo, Tristan, and Yue (Barbara)</p>
        </div>
@@ -855,11 +855,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
    <!-- San Diego Senior Games (CSP, 2026/2027) -->
    <div class="ocs__grid-cell  capstone-item CSP" data-year="2026-2027">
-       <a href="{% post_url 2026-09-10-sdseniorgames-capstone %}">
+       <a href="{% post_url capstone/2026-09-10-sdseniorgames-capstone %}">
            <img src="/images/capstone/sdseniorgames.png" alt="San Diego Senior Games Logo" class="w-28 h-28 object-contain rounded" />
        </a>
        <div>
-           <h3 class="text-lg font-semibold"><a href="{% post_url 2026-09-10-sdseniorgames-capstone %}">San Diego Senior Games</a></h3>
+           <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-09-10-sdseniorgames-capstone %}">San Diego Senior Games</a></h3>
            <p class="text-sm text-gray-700">This capstone project reorganizes the San Diego Senior Games website around the person actually trying to register. It gives every one of the seventeen sports its own page with dates, brackets, and fees in one place, smooths the handoff to the outside registration platform, and rebuilds the type, contrast, and tap targets for an audience of athletes aged 50 and over.</p>
            <p class="text-xs text-gray-500 mt-2">Team: Aryan M, Pranay K, Raymond L</p>
        </div>
@@ -867,11 +867,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
    <!-- Advancing STEM (CSP, 2026/2027) -->
    <div class="ocs__grid-cell  capstone-item CSP" data-year="2026-2027">
-       <a href="{% post_url 2026-09-10-advancingstem-capstone %}">
+       <a href="{% post_url capstone/2026-09-10-advancingstem-capstone %}">
            <img src="/images/capstone/advancingstem.png" alt="Advancing STEM Logo" class="w-28 h-28 object-contain rounded" />
        </a>
        <div>
-           <h3 class="text-lg font-semibold"><a href="{% post_url 2026-09-10-advancingstem-capstone %}">Advancing STEM</a></h3>
+           <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-09-10-advancingstem-capstone %}">Advancing STEM</a></h3>
            <p class="text-sm text-gray-700">This capstone project rebuilds the Advancing Science, Technology and Art website so it shows what the nonprofit actually does. It moves the proof to the front, gives competitions, mentoring, camps, and outreach their own pages, makes the nine countries they work in visible, and turns a wall of sponsor logos into a page that makes the case for the next sponsor.</p>
            <p class="text-xs text-gray-500 mt-2">Team: Aryan M, Pranay K, Raymond L</p>
        </div>
@@ -879,11 +879,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
    <!-- San Diego Lab Rats (CSP, 2026/2027) -->
    <div class="ocs__grid-cell  capstone-item CSP" data-year="2026-2027">
-       <a href="{% post_url 2026-09-10-sdlabrats-capstone %}">
+       <a href="{% post_url capstone/2026-09-10-sdlabrats-capstone %}">
            <img src="/images/capstone/sdlabrats.png" alt="San Diego Lab Rats Logo" class="w-28 h-28 object-contain rounded" />
        </a>
        <div>
-           <h3 class="text-lg font-semibold"><a href="{% post_url 2026-09-10-sdlabrats-capstone %}">San Diego Lab Rats</a></h3>
+           <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-09-10-sdlabrats-capstone %}">San Diego Lab Rats</a></h3>
            <p class="text-sm text-gray-700">This capstone project restructures the San Diego Lab Rats website around the parent deciding whether to enroll. It removes the content that currently repeats across three separate blocks, gives each program its own comparable page, and pulls charter school funding and scholarships out of hiding so the families who need them can actually find them.</p>
            <p class="text-xs text-gray-500 mt-2">Team: Aryan M, Pranay K, Raymond L</p>
        </div>
@@ -891,11 +891,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
    <!-- OCS Assignment Tracker (CSA) -->
   <div class="ocs__grid-cell  capstone-item CSA" data-year="2026-2027">
-       <a href="{% post_url capstone/2026-09-03-chuds-capstone %}">
+       <a href="{% post_url capstone/2026-02-06-slack-messaging-capstone %}">
            <img src="/images/backendboyzgcpiccc.png" alt="Backend Boyz - OCS Assignment Tracker" class="w-28 h-28 object-cover rounded" />
        </a>
        <div>
-           <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-09-03-chuds-capstone %}">Backend Boyz</a></h3>
+           <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-02-06-slack-messaging-capstone %}">Backend Boyz</a></h3>
            <p class="text-sm text-gray-700">Developing an easy way for mentors to access Open Coding Society, featuring Google OAuth-verified signup, a scoped capstone project dashboard, real-time team chat, and role-based permissions between students and admins.</p>
            <p class="text-xs text-gray-500 mt-2">Team: Backend Boyz (Shayan B, Darshan S, Rudra J, Dhyan S, Harrish A, Lucas M, Zhengli L, Jacob C, Arnav P)</p>
        </div>
@@ -903,11 +903,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
    <!-- OCS Security (CSA) -->
   <div class="ocs__grid-cell  capstone-item CSA" data-year="2026-2027">
-       <a href="{% post_url capstone/2026-09-03-cccs-security %}">
+       <a href="{% post_url capstone/2026-09-03-ocs-admin-security-team %}">
            <img src="/images/capstone/cccs-security-logo.png" alt="CCCS Security" class="w-28 h-28 object-cover rounded" />
        </a>
        <div>
-           <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-09-03-cccs-security %}">OCS Security</a></h3>
+           <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-09-03-ocs-admin-security-team %}">OCS Security</a></h3>
            <p class="text-sm text-gray-700">These security fixes ensure that new users must create complex passwords to prevent unauthorized access, and ensure code runners execute in individual containers to prevent malicious RCEs from accessing sensitive information.</p>
            <p class="text-xs text-gray-500 mt-2">Team: Lucas Masterson, Jacob Chou, Zhengji Li</p>
        </div>
@@ -915,11 +915,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
    <!-- My Good Brain (CSP 26-27) -->
    <div class="ocs__grid-cell  capstone-item CSP" data-year="2026-2027">
-       <a href="{% post_url 2026-09-09-goodbrain %}">
+       <a href="{% post_url capstone/2026-09-09-goodbrain %}">
            <img src="{{ '/images/capstone/my_good_brain.png' | relative_url }}" alt="My Good Brain logo" class="w-28 h-28 object-cover rounded" />
        </a>
        <div>
-           <h3 class="text-lg font-semibold"><a href="{% post_url 2026-09-09-goodbrain %}">My Good Brain</a></h3>
+           <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-09-09-goodbrain %}">My Good Brain</a></h3>
            <p class="text-sm text-gray-700">An interactive hub bridging psychology, neuroscience, and art to support youth mental and emotional wellness </p>
            <p class="text-xs text-gray-500 mt-2">Team: Rashi Gaurav, Aashni Katari, Kelervia Fang</p>
        </div>
