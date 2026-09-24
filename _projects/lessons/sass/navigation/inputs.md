@@ -1,6 +1,10 @@
 ---
 layout: post
 assignment: true
+points: 1
+assignment_submission_type: code
+assignment_creator_uids:
+  - "psai-github"
 title: SASS Inputs
 description: Learn the OCS SASS input grammar and refactor hardcoded input styles into reusable classes.
 categories: [SASS, Inputs]
@@ -14,15 +18,22 @@ permalink: /sass/inputs/
 author: Open Coding Society
 ---
 
-# OCS SASS Inputs
+# OCS SASS Inputs — PVO
 
-## Lesson
+## 1. Reference Guide
 
-**Learning Objective:** By the end of this lesson, you will be able to size and style `<input>` elements using the OCS SASS input grammar.
+### Key Vocabulary
 
-**Success Criteria:** You can remove inline input styling and replace it with `ocs__input` plus the correct size and style modifiers.
+| Term | Meaning |
+| --- | --- |
+| **Input** | A control that lets a user enter or select data. |
+| **Value** | The data currently stored in an input. |
+| **Placeholder** | A short hint shown when an input is empty. |
+| **Label** | Text that identifies what an input is asking for. |
+| **Modifier** | A reusable class such as `small`, `medium`, `large`, or `gradient` that changes an input's appearance. |
+| **Submit** | An action that sends or processes the user's current input values. |
 
-### What Is an Input?
+### Input Anatomy
 
 An HTML `<input>` is a form control that lets a user give data to a web page.
 
@@ -42,7 +53,7 @@ A simple input looks like this:
 <label for="student-name">Name</label>
 <input
   id="student-name"
-  name="studentName"
+  name="resourceRequest"
   type="text"
   class="ocs__input medium"
   placeholder="Enter your name"
@@ -67,39 +78,119 @@ Modifiers can be combined:
 <input
   type="text"
   class="ocs__input large gradient"
-  placeholder="Username"
+  placeholder="Assistance Category"
 >
 ```
 
 
+## 2. LxD Cycle Process
+
+### Empathize
+
+The [Poway Veterans Organization assistance form](https://powayveterans.org/request-assistance/) collects information such as a veteran's name, contact information, branch of service, and needs. A visitor must be able to understand each field quickly and enter information without fighting inconsistent styling.
+
+**Reference problem:** if every field is styled differently with inline CSS or one-off classes, the form becomes harder to maintain and less consistent for the people using it.
+
+### Define
+
+- **POV:** PVO visitors need clear, consistent input fields because they may be entering important assistance or volunteer information and should not have to relearn the interface from field to field.
+- **Learning Goal:** Students will build and style PVO-themed input controls with reusable OCS SASS classes, then connect the same user-input idea to AP CSP pseudocode.
+
+### Ideate
+
+**How might we** make PVO forms consistent while keeping the HTML simple?
+
+Students will use one base class, a small set of modifiers, labels, and a submit interaction instead of writing custom styles for each field.
+
+### Prototype
+
+Build the interface in small steps:
+1. one styled input;
+2. an input with a size/style modifier;
+3. an input plus a button and output;
+4. the same interaction represented in College Board pseudocode.
+
+### Test
+
+Press **Run**, enter several different values, test an empty value, change the modifier classes, and check that the label, input, button, and output still make sense together.
+
+---
+
+## 3. College Board Requirements
+
+AP Computer Science Principles includes the learning objective **CRD-2.F: "Design a program and its user interface."** The framework also describes user interactions as part of program requirements and notes that UI-layout diagrams can be part of program design.
+
+**How this lesson connects:** the PVO examples require students to decide what information a user enters, how the input is presented, what happens when Submit is pressed, and what output appears afterward. The SASS controls presentation; the program logic controls the interaction.
+
+### PVO UI Plan
+
+```text
+PVO visitor
+    |
+    v
+[ Resource / volunteer input ]
+    |
+    v
+[ Submit button ]
+    |
+    v
+[ Program reads the value ]
+    |
+    v
+[ Helpful result shown to user ]
+```
+
+---
+
+## 4. Lesson Plan
+
+**Learning Objective:** By the end of this lesson, you will be able to create PVO-themed input interfaces using `ocs__input` and explain how the same interaction is represented with College Board `INPUT()` and `DISPLAY()` pseudocode.
+
+**Success Criteria:** You can:
+- choose an appropriate HTML input type;
+- apply `ocs__input` with the correct modifier;
+- connect an input to a submit action;
+- explain the difference between HTML, SASS, JavaScript, and pseudocode;
+- complete the PVO homework without inline styles.
+
+---
+
+## 5. Tech Talk and Code Examples
+
 ### Tech Talk
 
-The global SASS system already provides the shared input appearance. Your HTML should describe the component role and modifiers rather than duplicate styling.
+**College Board idea:** a user interface is part of program design. In this lesson, the input is the part where the user gives information to the program.
 
-**The Rule:** Use `ocs__input` and its modifiers. Let the global SASS system handle the visual design.
+- **HTML** creates the input, label, and button.
+- **SASS** controls reusable visual styling.
+- **JavaScript** reads browser input values and reacts to Submit.
+- **AP CSP pseudocode** represents the same idea more generally with `INPUT()` and `DISPLAY()`.
 
-- ✅ Do this: `<input type="email" class="ocs__input medium" placeholder="Email">`
-- ❌ Don't do this: `<input type="email" style="width: 300px; padding: 8px;" placeholder="Email">`
+**The Rule:** use the OCS input grammar instead of writing a new style for each PVO field.
+
+- ✅ Do this: `<input type="text" class="ocs__input medium" placeholder="Resource needed">`
+- ❌ Don't do this: `<input type="text" style="width:300px;padding:8px" placeholder="Resource needed">`
+
 
 ### Code Examples
 
 #### A. Simple: Base Input
 
 ```html
-<input type="text" class="ocs__input" placeholder="Default input">
+<input type="text" class="ocs__input" placeholder="Veteran resource needed">
 ```
 
 #### B. Intermediate: Size Modifiers
 
 ```html
-<input type="text" class="ocs__input small" placeholder="First Name">
-<input type="text" class="ocs__input large" placeholder="Search...">
+<input type="text" class="ocs__input small" placeholder="Volunteer first name">
+<input type="text" class="ocs__input large" placeholder="Search PVO resources...">
 ```
 
 #### C. Complex: Combined Modifiers
 
 ```html
-<input type="text" class="ocs__input large gradient" placeholder="Username">
+<input type="text" class="ocs__input large gradient" placeholder="Assistance category">
 ```
 
 ### Interactive UI Runner: Read an Input Value
@@ -107,14 +198,14 @@ The global SASS system already provides the shared input appearance. Your HTML s
 This runner creates a real text input. Click **Run**, type into the rendered field, and watch JavaScript read the input's `.value`.
 
 {% capture input_value_challenge %}
-Run the example, type a name into the input, and observe how the displayed value changes. Then edit the placeholder or size modifier and run it again.
+Run the example, type a PVO resource need into the input, and observe how the displayed value changes. Then edit the placeholder or size modifier and run it again.
 {% endcapture %}
 
 {% capture input_value_code %}
 outputElement.innerHTML =
   '<div class="ocs__card">' +
-    '<label for="input-value-demo">Your name</label>' +
-    '<input id="input-value-demo" name="studentName" type="text" class="ocs__input medium" placeholder="Type your name">' +
+    '<label for="input-value-demo">PVO resource</label>' +
+    '<input id="input-value-demo" name="resourceRequest" type="text" class="ocs__input medium" placeholder="Type a resource, such as transportation">' +
     '<p id="input-value-result">Current value: ""</p>' +
   '</div>';
 
@@ -150,13 +241,13 @@ const sizeClass = 'large';
 const useGradient = true;
 
 const label = document.createElement('label');
-label.textContent = 'Email';
+label.textContent = 'Volunteer email';
 label.setAttribute('for', 'styled-input-demo');
 
 const input = document.createElement('input');
 input.id = 'styled-input-demo';
 input.type = 'email';
-input.placeholder = 'student@example.com';
+input.placeholder = 'volunteer@example.com';
 input.className = 'ocs__input ' + sizeClass + (useGradient ? ' gradient' : '');
 
 const info = document.createElement('p');
@@ -179,16 +270,16 @@ outputElement.append(label, document.createElement('br'), input, info);
 This example shows the full flow: the user types data into an input, clicks a button, and JavaScript reads the value.
 
 {% capture input_submit_challenge %}
-Type a message and click the rendered Submit button. Change the input type or size class and run the example again.
+Type a volunteer skill and click the rendered Submit button. Change the input type or size class and run the example again.
 {% endcapture %}
 
 {% capture input_submit_code %}
 outputElement.innerHTML =
   '<div class="ocs__card">' +
-    '<label for="message-input-demo">Message</label>' +
-    '<input id="message-input-demo" type="text" class="ocs__input medium" placeholder="Enter a message">' +
+    '<label for="message-input-demo">Volunteer skill</label>' +
+    '<input id="message-input-demo" type="text" class="ocs__input medium" placeholder="Enter a skill, such as painting">' +
     '<button id="message-submit-demo" type="button" class="ocs__btn fill">Submit</button>' +
-    '<p id="message-output-demo">Nothing submitted yet.</p>' +
+    '<p id="message-output-demo">No skill submitted yet.</p>' +
   '</div>';
 
 const input = outputElement.querySelector('#message-input-demo');
@@ -247,7 +338,7 @@ Try several emailValue strings and run the code. What makes the simple validatio
 {% endcapture %}
 
 {% capture input_validation_code %}
-const emailValue = "student@example.com";
+const emailValue = "volunteer@example.com";
 
 if (emailValue.trim() === "") {
   console.log("Please enter an email address.");
@@ -267,14 +358,11 @@ if (emailValue.trim() === "") {
 
 ### College Board Pseudocode Example
 
-In AP CSP pseudocode, `INPUT()` gets data from the user and `DISPLAY()` shows output.
+In AP CSP pseudocode, `INPUT()` gets data from the user and `DISPLAY()` shows output. This is the same interaction as the PVO HTML/SASS example, expressed without browser-specific code.
 
 {% capture input_pseudocode_example %}
-name ← INPUT("Enter your name:")
-age ← INPUT("Enter your age:")
-
-DISPLAY("Hello " + name)
-DISPLAY("Next year you will be " + (age + 1))
+resource ← INPUT("What PVO resource are you looking for?")
+DISPLAY("Searching PVO resources for: " + resource)
 {% endcapture %}
 
 {% include runners/code.html
@@ -292,9 +380,9 @@ DISPLAY("Next year you will be " + (age + 1))
 
 ---
 
-## Practice
+## 6. Submit Details and Homework
 
-### Prepare Your Submission (IPYNB)
+### Submit Details
 
 1. Create a notebook in your portfolio homework area: `_notebooks/homework`.
 2. Add a markdown cell with the frontmatter below.
@@ -335,8 +423,8 @@ author: githubID
 %%html
 <!-- UI_RUNNER: Inputs Popcorn Base -->
 
-<input type="text" style="width: 400px; border: 3px dashed purple;" placeholder="Search...">
-<input type="text" class="box" placeholder="First Name">
+<input type="text" style="width: 400px; border: 3px dashed purple;" placeholder="Search PVO resources...">
+<input type="text" class="box" placeholder="Volunteer First Name">
 ```
 
 **Expected direction:** one large, gradient-styled input and one compact plain input, both using `ocs__input`.
@@ -349,9 +437,9 @@ author: githubID
 %%html
 <!-- UI_RUNNER: Inputs Homework Base -->
 
-<input type="text" style="width: 500px; background: linear-gradient(to right, pink, purple);" placeholder="Username">
-<input type="text" class="tinybox" placeholder="First Name">
-<input type="email" style="padding: 6px;" placeholder="Email address">
+<input type="text" style="width: 500px; background: linear-gradient(to right, pink, purple);" placeholder="Assistance Category">
+<input type="text" class="tinybox" placeholder="Volunteer First Name">
+<input type="email" style="padding: 6px;" placeholder="Volunteer Email">
 ```
 
 ---
@@ -375,3 +463,13 @@ author: githubID
 - Present: `gradient` where decorative gradient styling is required.
 
 ---
+
+---
+
+## 7. References
+
+- [College Board — AP Computer Science Principles Course and Exam Description](https://apcentral.collegeboard.org/media/pdf/ap-computer-science-principles-course-and-exam-description.pdf)
+- [College Board — AP Computer Science Principles course page](https://apcentral.collegeboard.org/courses/ap-computer-science-principles)
+- [MDN — HTML input element](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input)
+- [Poway Veterans Organization](https://powayveterans.org/)
+- [PVO — Apply for Assistance](https://powayveterans.org/request-assistance/)
