@@ -53,10 +53,10 @@ const OS_STORAGE_KEY = 'ocs-toolchain-trail-os';
  * Selection drives which per-station instructions/example commands show.
  */
 const OS_OPTIONS = Object.freeze([
-  { id: 'windows', icon: '🪟', label: 'Windows' },
-  { id: 'kasm', icon: '☁️', label: 'Kasm (Cloud Linux Desktop)' },
-  { id: 'macos', icon: '🍎', label: 'macOS' },
-  { id: 'linux', icon: '🐧', label: 'Linux' },
+  { id: 'windows', label: 'Windows' },
+  { id: 'kasm', label: 'Kasm (Cloud Linux Desktop)' },
+  { id: 'macos', label: 'macOS' },
+  { id: 'linux', label: 'Linux' },
 ]);
 
 /**
@@ -746,38 +746,6 @@ class GameLevelCsPath4Toolchain {
     };
 
     /**
-     * Section: persistent corner button — lets a student reopen the OS picker
-     * (e.g. if they picked the wrong OS) without hunting through the sidebar.
-     */
-    this._ensureOSButton = function () {
-      if (this._osButtonEl) return;
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.textContent = '💻 Change OS';
-      button.title = 'Switch the operating system used for station instructions';
-      button.style.cssText = `
-        position: fixed; bottom: 20px; left: 20px;
-        z-index: 100015;
-        background: ${uiTheme.background};
-        border: 2px solid ${uiTheme.borderColor};
-        color: ${uiTheme.accentColor};
-        font-family: "Courier New", monospace;
-        font-size: 13px;
-        padding: 8px 14px; border-radius: 8px; letter-spacing: 0.6px;
-        box-shadow: ${uiTheme.boxShadow};
-        cursor: pointer;
-      `;
-      button.onclick = () => this._promptOSSelection(true);
-      document.body.appendChild(button);
-      this._osButtonEl = button;
-    };
-
-    this._removeOSButton = function () {
-      if (this._osButtonEl?.parentNode) this._osButtonEl.parentNode.removeChild(this._osButtonEl);
-      this._osButtonEl = null;
-    };
-
-    /**
      * Section: sidebar (PLAYER PROFILE carried over + new Toolchain Trail block).
      */
     const panelFields = [
@@ -785,6 +753,7 @@ class GameLevelCsPath4Toolchain {
       { key: 'email', label: 'Email', emptyValue: '—' },
       { key: 'githubID', label: 'GitHub ID', emptyValue: '—' },
       { key: 'persona', label: 'Persona', emptyValue: '—' },
+      { key: 'selectedOS', label: 'Operating System', emptyValue: 'Not selected' },
       { type: 'section', title: 'Completion Status', marginTop: '10px' },
       { key: 'completionIdentityForge', label: 'Identity Forge', emptyValue: '—' },
       { key: 'completionWayfindingWorld', label: 'Wayfinding World', emptyValue: '—' },
@@ -819,12 +788,12 @@ class GameLevelCsPath4Toolchain {
           },
         ] : []),
         {
-          label: '� Change Operating System',
+          label: 'Change Operating System',
           title: 'Switch the OS used for station instructions/commands',
           onClick: () => level._promptOSSelection(true),
         },
         {
-          label: '�🔄 Reset Toolchain Trail',
+          label: '🔄 Reset Toolchain Trail',
           title: 'Clear only this level\'s station progress',
           danger: true,
           onClick: () => level._showResetModal(),
@@ -920,6 +889,10 @@ class GameLevelCsPath4Toolchain {
         completionIdentityForge: '✓',
         completionWayfindingWorld: '✓',
         completionMissionTools: '✓',
+        selectedOS: (() => {
+          const opt = OS_OPTIONS.find((o) => o.id === this.selectedOS);
+          return opt ? opt.label : 'Not selected';
+        })(),
         toolchainScore: (this.completedStations.size / this.STATIONS.length).toFixed(3),
       };
       this.STATIONS.forEach((station) => {
@@ -1030,11 +1003,11 @@ class GameLevelCsPath4Toolchain {
       ].join(';');
 
       const optionButtonsHtml = OS_OPTIONS.map((opt) => `
-        <button class="tt-os-option" data-os="${opt.id}" style="${optionBtnStyle}">${opt.icon} ${opt.label}</button>
+        <button class="tt-os-option" data-os="${opt.id}" style="${optionBtnStyle}">${opt.label}</button>
       `).join('');
 
       box.innerHTML = `
-        <div style="font-size:1.05em;font-weight:bold;margin-bottom:10px;">💻 Choose Your Operating System</div>
+        <div style="font-size:1.05em;font-weight:bold;margin-bottom:10px;">Choose Your Operating System</div>
         <div style="font-size:0.86em;line-height:1.6;margin-bottom:18px;">
           The Toolchain Trail has you run real terminal commands. Pick the
           system you're working on so each station shows the right steps.
@@ -1052,6 +1025,7 @@ class GameLevelCsPath4Toolchain {
           this.selectedOS = osId;
           try { localStorage.setItem(OS_STORAGE_KEY, osId); } catch (err) { /* storage unavailable */ }
           overlay.remove();
+          this._updatePanel();
           const label = OS_OPTIONS.find((o) => o.id === osId)?.label || osId;
           this.showToast(`✦ Toolchain Trail set for ${label}`);
         };
@@ -1142,9 +1116,9 @@ class GameLevelCsPath4Toolchain {
    */
   initialize() {
     // First thing the student sees on the trail: pick an OS (skipped if
-    // already saved from a previous visit).
+    // already saved from a previous visit). Shown in the PLAYER PROFILE
+    // sidebar afterwards, not a floating corner indicator.
     this._promptOSSelection();
-    this._ensureOSButton();
 
     const objects = this.gameEnv?.gameObjects || [];
     const gatekeepers = objects.filter((obj) => this._stationGatekeeperIds?.includes(obj?.spriteData?.id));
@@ -1229,7 +1203,6 @@ class GameLevelCsPath4Toolchain {
     if (this._stuckCheckInterval) clearInterval(this._stuckCheckInterval);
     this._hideLoading();
     this.clearZoneAlert?.();
-    this._removeOSButton?.();
     if (this._toastEl?.parentNode) this._toastEl.parentNode.removeChild(this._toastEl);
     if (this.levelDialogueSystem) {
       if (typeof this.levelDialogueSystem.destroy === 'function') {

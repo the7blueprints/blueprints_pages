@@ -8,10 +8,10 @@ description: How to use and maintain the Capstone Infographics home page, includ
 courses: {'csse': {'week': 25}}
 type: documentation
 categories: Capstone
-permalink: /capstone-readme/
+permalink: /capstone-home-documentation/
 ---
 
-## Capstone Infographics Home Page README
+## Capstone Infographics Home Page Documentation
 
 This document explains how to use the capstone home page located at `_posts/capstone/2026-02-09-capstone_home.md`.
 
