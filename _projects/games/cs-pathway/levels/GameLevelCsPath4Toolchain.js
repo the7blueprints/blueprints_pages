@@ -935,6 +935,7 @@ class GameLevelCsPath4Toolchain {
       this._stationTrialOpen = true;
       const trial = new StationVerificationTrial({
         station: this._localizeStation(station),
+        os: this.selectedOS || 'linux',
         onComplete: async ({ stationId: completedId }) => {
           this._stationTrialOpen = false;
           this.completedStations.add(completedId);
