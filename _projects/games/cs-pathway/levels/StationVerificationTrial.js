@@ -1,41 +1,6 @@
 /**
- * StationVerificationTrial
- * ------------------------
- * The "go run a real terminal command" screen described in
- * game-progression-plan.md section 1:
- *
- *   1. Game shows a short instruction + narrative hook.
- *   2. Student goes to the terminal and runs the real command.
- *   3. A lightweight local agent/script watches for the result and sends
- *      a signed payload to the backend.
- *   4. Backend validates it against the student's current required step.
- *   5. Valid → station complete, NPC fun-fact popup, next station unlocks.
- *      Invalid/missing → nothing unlocks.
- *
- * WIRING NOTE (read this before shipping):
- *   No backend "terminal agent" endpoint exists yet, so this trial ships
- *   with a CLIENT-SIDE MOCK terminal: the student types the expected
- *   command into a fake shell and it's checked against a regex. This is
- *   enough to demo the full station flow end-to-end today.
- *
- *   To wire up the real thing later, replace `_mockVerify()` with a call
- *   to your real verification endpoint, e.g.:
- *
- *     const res = await fetch(`${pythonURI}/api/toolchain/verify`, {
- *       ...fetchOptions,
- *       method: 'POST',
- *       body: JSON.stringify({ stationId: this.station.id }),
- *     });
- *     const { verified } = await res.json();
- *
- *   and poll it (or push to it via websocket) instead of checking the
- *   typed string client-side. The `onComplete` / `onClose` contract below
- *   will not need to change.
- *
- * Visual language: dark space/cockpit terminal, cyan/violet glow, matches
- * the space theme requested for Level 2 while keeping the same
- * overlay/card structure as CourseEnlistmentTrial / PersonaHallTrial /
- * AboutMeBuilder so it feels native to the existing engine.
+ * Student-facing output checks for Toolchain Trail. The browser can inspect
+ * pasted output, but only a future trusted service can confirm it ran locally.
  */
 
 import { verifyStationOutput, PASTE_PROMPTS } from '@assets/js/projects/cs-pathway/model/stationVerifiers.js';
@@ -347,14 +312,13 @@ export default class StationVerificationTrial {
           </div>
 
           <div class="svt-panel">
-                  <div class="svt-panel">
             <h4>VERIFY YOUR OUTPUT</h4>
             <div class="svt-prompt">${this._escape(PASTE_PROMPTS[this.station.id] || 'Run the command and paste its output.')}</div>
             <div class="svt-terminal">
               <textarea class="svt-paste" id="svt-input" spellcheck="false" placeholder="Paste your terminal output here..."></textarea>
             </div>
             <div class="svt-hint">
-              Run the command in your own terminal, copy what it prints, and paste it here.
+              Paste terminal output for practice feedback. This page cannot confirm that a command ran on your computer. Never paste passwords, tokens, or private keys.
             </div>
             <div class="svt-status" id="svt-status"></div>
             <div class="svt-checks" id="svt-checks"></div>
@@ -420,21 +384,6 @@ export default class StationVerificationTrial {
       this.inputEl.focus();
     }
   }
-  /**
-   * Client-side mock check. Swap this out for a real backend call — see
-   * the file-level comment for the exact shape to use.
-   * @private
-   */
-  async _mockVerify(typed) {
-    const pattern = this.station.expectedCommandPattern;
-    if (!pattern) return true; // stations without a pattern always pass (safety fallback)
-    try {
-      return pattern.test(typed);
-    } catch (_) {
-      return false;
-    }
-  }
-
     _renderChecks(checks = []) {
     if (!this.checksEl) return;
     this.checksEl.innerHTML = checks.map((c) => `
