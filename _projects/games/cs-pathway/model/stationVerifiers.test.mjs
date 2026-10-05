@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-const code=readFileSync('/Users/merylchen/blueprints_pages/_projects/games/cs-pathway/model/stationVerifiers.js','utf8');
+// Resolve next to this test so it runs on any machine, including the GitHub Pages build.
+const code=readFileSync(new URL('./stationVerifiers.js', import.meta.url),'utf8');
 const { verifyStationOutput, PASTE_PROMPTS }=await import(`data:text/javascript,${encodeURIComponent(code)}`);
 const examples={
  'terminal-town-gate':'/home/student\ndrwxr-xr-x 2 student student 4096 Oct 4 10:00 toolchain-trail',
