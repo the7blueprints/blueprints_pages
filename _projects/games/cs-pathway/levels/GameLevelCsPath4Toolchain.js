@@ -40,6 +40,7 @@ import StationVerificationTrial from './StationVerificationTrial.js';
 import TrailPath from './TrailPath.js';
 import PathwayScoreboard from './PathwayScoreboard.js';
 import MacSetupCheck from './MacSetupCheck.js';
+import SystemSetupCheck from './SystemSetupCheck.js';
 import { recordLevelRatio } from '../model/pathwayScores.js';
 import {
   STATION_STATUS,
@@ -735,7 +736,13 @@ class GameLevelCsPath4Toolchain {
       if (!isActiveLevel) return;
       if (!this._zoneAlertEl) {
         const zoneAlert = document.createElement('div');
-        zoneAlert.style.cssText = createNotificationStyle('84px', 100010);
+        zoneAlert.style.cssText = createNotificationStyle('auto', 100010);
+        // Keep the interaction prompt completely away from the top-right scoreboard.
+        zoneAlert.style.bottom = '16px';
+        zoneAlert.style.right = 'auto';
+        zoneAlert.style.left = '20px';
+        zoneAlert.style.width = 'min(360px, calc(100vw - 40px))';
+        zoneAlert.style.textAlign = 'center';
         document.body.appendChild(zoneAlert);
         this._zoneAlertEl = zoneAlert;
       }
@@ -811,6 +818,10 @@ class GameLevelCsPath4Toolchain {
     // Mac setup agent trigger: only offered when macOS is the selected OS.
     this.macSetupCheck = new MacSetupCheck();
     this.macSetupCheck.setVisible(this.selectedOS === 'macos');
+    // Linux, Kasm, and Windows/WSL use their own setup-agent panel. The
+    // existing macOS component above remains separate and unchanged.
+    this.systemSetupCheck = new SystemSetupCheck();
+    this.systemSetupCheck.setOS(this.selectedOS);
 
     /**
      * Section: station status derivation + persistence.
@@ -1036,6 +1047,7 @@ class GameLevelCsPath4Toolchain {
           overlay.remove();
           this._updatePanel();
           this.macSetupCheck?.setVisible(osId === 'macos');
+          this.systemSetupCheck?.setOS(osId);
           const label = OS_OPTIONS.find((o) => o.id === osId)?.label || osId;
           this.showToast(`✦ Toolchain Trail set for ${label}`);
         };
@@ -1128,7 +1140,7 @@ class GameLevelCsPath4Toolchain {
     // First thing the student sees on the trail: pick an OS (skipped if
     // already saved from a previous visit). Shown in the PLAYER PROFILE
     // sidebar afterwards, not a floating corner indicator.
-    this._promptOSSelection();
+    this._promptOSSelection(true);
 
     const objects = this.gameEnv?.gameObjects || [];
     const gatekeepers = objects.filter((obj) => this._stationGatekeeperIds?.includes(obj?.spriteData?.id));
@@ -1221,6 +1233,7 @@ class GameLevelCsPath4Toolchain {
     console.log(`[${this.logPrefix}] tearing down level...`);
     this.scoreboard?.destroy();
     this.macSetupCheck?.destroy();
+    this.systemSetupCheck?.destroy();
     if (this._stuckCheckInterval) clearInterval(this._stuckCheckInterval);
     this._hideLoading();
     this.clearZoneAlert?.();
