@@ -174,6 +174,19 @@ source /absolute/path/to/pages/scripts/mac_setup_agent.zsh
 
 Run `mac_agent_pause` / `mac_agent_resume` in a shell to temporarily turn it off/on.
 
+To check your whole Mac setup at once (Xcode tools, Homebrew, Git and its name/email, Python/pip/venv,
+Ruby/Bundler, Java, VS Code's `code` command, this repo and its venv), run from the repo folder:
+
+```bash
+python3 scripts/mac_setup_agent.py --check
+```
+
+It only reads versions and settings; nothing is installed or changed. It prints a report with a fix for
+each failed check and exits `0` (all passed), `1` (something to fix), or `2` (not a Mac). In the CS Pathway
+game, the **Check my Mac setup** button in Toolchain Trail (shown when macOS is selected) gives students
+this command and checks the pasted report. Tests: `python3 -m unittest discover -s scripts -p 'test_mac_setup_agent.py'`
+and `node --test tests/test_mac_setup_report.mjs`.
+
 ### Jupyter Kernels
 
 To run many of the IPYNB files you will need to install Jupyter kernels for the languages you want to use. Here are the most common and recommended kernels:

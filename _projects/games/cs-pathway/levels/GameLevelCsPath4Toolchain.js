@@ -39,6 +39,7 @@ import LocalProfile from '@assets/js/projects/cs-pathway/model/localProfile.js';
 import StationVerificationTrial from './StationVerificationTrial.js';
 import TrailPath from './TrailPath.js';
 import PathwayScoreboard from './PathwayScoreboard.js';
+import MacSetupCheck from './MacSetupCheck.js';
 import { recordLevelRatio } from '../model/pathwayScores.js';
 import {
   STATION_STATUS,
@@ -808,6 +809,9 @@ class GameLevelCsPath4Toolchain {
     this.profilePanelView.render();
     this.scoreboard = new PathwayScoreboard({ currentLevelKey: 'toolchain-trail', basePath: this.gameEnv.path });
     this.scoreboard.show();
+    // Mac setup agent trigger: only offered when macOS is the selected OS.
+    this.macSetupCheck = new MacSetupCheck();
+    this.macSetupCheck.setVisible(this.selectedOS === 'macos');
 
     /**
      * Section: station status derivation + persistence.
@@ -1032,6 +1036,7 @@ class GameLevelCsPath4Toolchain {
           try { localStorage.setItem(OS_STORAGE_KEY, osId); } catch (err) { /* storage unavailable */ }
           overlay.remove();
           this._updatePanel();
+          this.macSetupCheck?.setVisible(osId === 'macos');
           const label = OS_OPTIONS.find((o) => o.id === osId)?.label || osId;
           this.showToast(`✦ Toolchain Trail set for ${label}`);
         };
@@ -1207,6 +1212,7 @@ class GameLevelCsPath4Toolchain {
   destroy() {
     console.log(`[${this.logPrefix}] tearing down level...`);
     this.scoreboard?.destroy();
+    this.macSetupCheck?.destroy();
     if (this._stuckCheckInterval) clearInterval(this._stuckCheckInterval);
     this._hideLoading();
     this.clearZoneAlert?.();

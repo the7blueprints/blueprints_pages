@@ -151,6 +151,7 @@ while preserving all critical instructions. The agent must still communicate wit
 * **数据流：** 每个关卡的分数 = 完成百分比（0–100）。前端由 [model/pathwayScores.js](_projects/games/cs-pathway/model/pathwayScores.js) 统一记录（`completeLevelTask` 用于任务型关卡，`recordLevelRatio` 用于 Mission Tools/Toolchain Trail 这类比例型关卡），并通过 [services/PathwayScoreApi.js](_projects/games/cs-pathway/services/PathwayScoreApi.js) 写入 Spring `PUT /api/cs-pathway/scores/{levelKey}`；学生身份取自 Spring JWT cookie，不在请求体里传 uid。
 * **存储：** Spring（blueprint-spring `mvc/cspathway`）复用现有 `stats` 表：`module = "cs-pathway"`，`submodule` 0–4 对应五个关卡，`grades` = 百分比，`finished` = 达到 100%。不要改 `stats` 表结构，也不要重新编号 submodule。分数只增不减（前后端都如此）。
 * **新增任务/关卡：** 在 `PATHWAY_LEVELS` 中添加任务 id，并保持 levelKey 与 Spring 的 `CsPathwayLevel` 枚举一致。每个关卡页右上角的 `PathwayScoreboard` 会自动显示。教师视图：Spring `/mvc/cs-pathway/read`。
+* **Mac 设置检查：** Toolchain Trail 选择 macOS 时显示“Check my Mac setup”按钮（[levels/MacSetupCheck.js](_projects/games/cs-pathway/levels/MacSetupCheck.js)）。网页无法在学生电脑上运行程序，所以按钮复制命令 `python3 scripts/mac_setup_agent.py --check`，学生把报告粘贴回来，由 [model/macSetupReport.js](_projects/games/cs-pathway/model/macSetupReport.js) 解析。报告格式由 [scripts/mac_setup_checks.py](scripts/mac_setup_checks.py) 定义；两边格式要同步修改（`tests/test_mac_setup_report.mjs` 用真实的 Python 输出做契约测试）。结果只显示，不保存。
 * **嵌套项目注意：** `make` 的 `watch-projects` 对 `games/cs-pathway` 这类嵌套项目取错目录名，不会自动重建；修改后手动运行 `make -C _projects/games/cs-pathway build` 并重启 `make`。
 
 ## 反模式
