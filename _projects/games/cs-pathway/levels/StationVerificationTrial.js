@@ -1,43 +1,9 @@
 /**
- * StationVerificationTrial
- * ------------------------
- * The "go run a real terminal command" screen described in
- * game-progression-plan.md section 1:
- *
- *   1. Game shows a short instruction + narrative hook.
- *   2. Student goes to the terminal and runs the real command.
- *   3. A lightweight local agent/script watches for the result and sends
- *      a signed payload to the backend.
- *   4. Backend validates it against the student's current required step.
- *   5. Valid → station complete, NPC fun-fact popup, next station unlocks.
- *      Invalid/missing → nothing unlocks.
- *
- * WIRING NOTE (read this before shipping):
- *   No backend "terminal agent" endpoint exists yet, so this trial ships
- *   with a CLIENT-SIDE MOCK terminal: the student types the expected
- *   command into a fake shell and it's checked against a regex. This is
- *   enough to demo the full station flow end-to-end today.
- *
- *   To wire up the real thing later, replace `_mockVerify()` with a call
- *   to your real verification endpoint, e.g.:
- *
- *     const res = await fetch(`${pythonURI}/api/toolchain/verify`, {
- *       ...fetchOptions,
- *       method: 'POST',
- *       body: JSON.stringify({ stationId: this.station.id }),
- *     });
- *     const { verified } = await res.json();
- *
- *   and poll it (or push to it via websocket) instead of checking the
- *   typed string client-side. The `onComplete` / `onClose` contract below
- *   will not need to change.
- *
- * Visual language: dark space/cockpit terminal, cyan/violet glow, matches
- * the space theme requested for Level 2 while keeping the same
- * overlay/card structure as CourseEnlistmentTrial / PersonaHallTrial /
- * AboutMeBuilder so it feels native to the existing engine.
+ * Student-facing output checks for Toolchain Trail. The browser can inspect
+ * pasted output, but only a future trusted service can confirm it ran locally.
  */
 
+import { verifyStationOutput, PASTE_PROMPTS } from '@assets/js/projects/cs-pathway/model/stationVerifiers.js';
 export default class StationVerificationTrial {
   /**
    * @param {Object} opts
@@ -53,8 +19,9 @@ export default class StationVerificationTrial {
    * @param {Function} [opts.onComplete] - called with { stationId } when verified
    * @param {Function} [opts.onClose] - called when the student closes without completing
    */
-  constructor({ station, onComplete, onClose } = {}) {
+   constructor({ station, os, onComplete, onClose } = {}) {
     this.station = station || {};
+    this.os = os || 'linux';
     this.onComplete = onComplete || (() => {});
     this.onClose = onClose || (() => {});
     this.overlay = null;
@@ -262,6 +229,64 @@ export default class StationVerificationTrial {
           cursor: not-allowed;
         }
 
+                .svt-checks {
+          margin-top: 10px;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+        .svt-check {
+          font-size: 12px;
+          line-height: 1.4;
+          padding: 6px 8px;
+          border-radius: 6px;
+        }
+        .svt-check.pass {
+          color: #4ade80;
+          background: rgba(34, 197, 94, 0.08);
+        }
+        .svt-check.fail {
+          color: #f87171;
+          background: rgba(248, 113, 113, 0.08);
+        }
+        .svt-check-detail {
+          display: block;
+          margin-top: 2px;
+          font-size: 11px;
+          color: #fca5a5;
+        }
+
+                .svt-verify {
+          margin-top: 12px;
+          padding: 10px 12px;
+          border: 1px dashed rgba(251, 191, 36, 0.6);
+          border-radius: 8px;
+          font-size: 12px;
+          line-height: 1.5;
+          color: #fde68a;
+        }
+        .svt-verify strong { color: #fbbf24; }
+
+                .svt-prompt {
+          font-size: 12px;
+          color: #fbbf24;
+          margin-bottom: 8px;
+          line-height: 1.5;
+        }
+
+        .svt-paste {
+          flex: 1;
+          min-height: 170px;
+          resize: vertical;
+          background: transparent;
+          border: none;
+          outline: none;
+          color: #e0f2fe;
+          font-family: inherit;
+          font-size: 12px;
+          white-space: pre;
+        }
+
         @media (max-width: 760px) {
           .svt-body { grid-template-columns: 1fr; }
         }
@@ -283,29 +308,26 @@ export default class StationVerificationTrial {
             <ol class="svt-steps">
               ${instructions.map((step) => `<li>${this._escape(step)}</li>`).join('')}
             </ol>
+                        <div class="svt-verify"><strong>FINAL STEP, VERIFY:</strong> ${this._escape(PASTE_PROMPTS[this.station.id] || 'Run the command and paste its output.')}</div>
           </div>
 
           <div class="svt-panel">
-            <h4>SHIP TERMINAL (demo mode)</h4>
+            <h4>VERIFY YOUR OUTPUT</h4>
+            <div class="svt-prompt">${this._escape(PASTE_PROMPTS[this.station.id] || 'Run the command and paste its output.')}</div>
             <div class="svt-terminal">
-              <div class="svt-terminal-log" id="svt-log">Awaiting real terminal action...\nType the command below and press Enter to simulate it.</div>
-              <div class="svt-terminal-row">
-                <span>&gt;</span>
-                <input id="svt-input" type="text" autocomplete="off" spellcheck="false" placeholder="type command here..." />
-              </div>
+              <textarea class="svt-paste" id="svt-input" spellcheck="false" placeholder="Paste your terminal output here..."></textarea>
             </div>
             <div class="svt-hint">
-              Hint: try something like <code>${this._escape(this.station.exampleCommand || '')}</code><br/>
-              In production this panel is replaced by a real signal from a local terminal-watching agent — see the
-              comment at the top of StationVerificationTrial.js.
+              Paste terminal output for practice feedback. This page cannot confirm that a command ran on your computer. Never paste passwords, tokens, or private keys.
             </div>
             <div class="svt-status" id="svt-status"></div>
+            <div class="svt-checks" id="svt-checks"></div>
           </div>
         </div>
 
         <div class="svt-actions">
           <button class="svt-btn" id="svt-cancel">Not Now</button>
-          <button class="svt-btn primary" id="svt-run" disabled>Verify Command</button>
+          <button class="svt-btn primary" id="svt-run" disabled>Verify Output</button>
         </div>
       </div>
     `;
@@ -314,6 +336,7 @@ export default class StationVerificationTrial {
 
     this.logEl = this.overlay.querySelector('#svt-log');
     this.statusEl = this.overlay.querySelector('#svt-status');
+    this.checksEl = this.overlay.querySelector('#svt-checks');
     this.inputEl = this.overlay.querySelector('#svt-input');
     this.runBtn = this.overlay.querySelector('#svt-run');
 
@@ -324,58 +347,51 @@ export default class StationVerificationTrial {
     this.inputEl.addEventListener('input', () => {
       this.runBtn.disabled = this.inputEl.value.trim().length === 0;
     });
-    this.inputEl.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !this.runBtn.disabled) {
-        this._attemptVerify();
-      }
-    });
+  
 
     this.inputEl.focus();
   }
 
   async _attemptVerify() {
-    const typed = this.inputEl.value.trim();
-    if (!typed) return;
+    const pasted = this.inputEl.value;
+    if (!pasted.trim()) return;
 
-    this._appendLog(`$ ${typed}`);
-    this._setStatus('pending', 'Contacting verification agent...');
+    this._setStatus('pending', 'Checking your output...');
+    this._renderChecks([]);
     this.runBtn.disabled = true;
+    await new Promise((r) => setTimeout(r, 300));
 
-    // Small delay so it reads like a real round-trip to a backend/agent.
-    await new Promise((r) => setTimeout(r, 450));
+    const result = verifyStationOutput(this.station.id, pasted, { os: this.os });
+    this._renderChecks(result.checks);
 
-    const ok = await this._mockVerify(typed);
-
-    if (ok) {
-      this._appendLog('✓ Signal received — station verified.');
+    if (result.ok) {
       this._setStatus('ok', '✓ Verified! Unlocking next station...');
       this.verified = true;
       setTimeout(() => {
         this.onComplete({ stationId: this.station.id });
         this._close(false);
-      }, 700);
+      }, 1200);
     } else {
-      this._appendLog('✗ No matching signal detected. Try again.');
-      this._setStatus('err', 'Not verified yet — check the mission briefing and try again.');
+      const passed = result.checks.filter((c) => c.passed).length;
+      const total = result.checks.length;
+      this._setStatus(
+        'err',
+        total > 0
+          ? `${passed}/${total} checks passed. Fix the ✗ items and paste again.`
+          : result.summary,
+      );
       this.runBtn.disabled = false;
-      this.inputEl.value = '';
       this.inputEl.focus();
     }
   }
-
-  /**
-   * Client-side mock check. Swap this out for a real backend call — see
-   * the file-level comment for the exact shape to use.
-   * @private
-   */
-  async _mockVerify(typed) {
-    const pattern = this.station.expectedCommandPattern;
-    if (!pattern) return true; // stations without a pattern always pass (safety fallback)
-    try {
-      return pattern.test(typed);
-    } catch (_) {
-      return false;
-    }
+    _renderChecks(checks = []) {
+    if (!this.checksEl) return;
+    this.checksEl.innerHTML = checks.map((c) => `
+      <div class="svt-check ${c.passed ? 'pass' : 'fail'}">
+        ${c.passed ? '✓' : '✗'} ${this._escape(c.label)}
+        ${!c.passed && c.detail ? `<span class="svt-check-detail">${this._escape(c.detail)}</span>` : ''}
+      </div>
+    `).join('');
   }
 
   _appendLog(line) {

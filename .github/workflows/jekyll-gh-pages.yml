@@ -53,6 +53,11 @@ jobs:
           make build-registered-projects  # Distribute all registered project files to Jekyll locations
           make build-registered-docs  # Distribute all registered documentation files to Jekyll locations  
 
+      - name: Check CS Pathway game modules
+        run: |
+          python scripts/check_cs_pathway_imports.py
+          node _projects/games/cs-pathway/model/stationVerifiers.test.mjs
+
       - name: Verify registered docs output
         run: |
           if [ -d "_posts/projects" ]; then
