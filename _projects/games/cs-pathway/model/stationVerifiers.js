@@ -2,7 +2,7 @@
 // not proof that the command ran on the student's machine.
 export const PASTE_PROMPTS = Object.freeze({
   'terminal-town-gate': 'Run pwd and ls -ld toolchain-trail; paste both outputs.',
-  'compiler-canyon-forge': 'Run python3 --version, python3 -m pip --version, ruby -v, bundle -v, and gem --version; paste the outputs.',
+  'compiler-canyon-forge': 'Run python3 --version, python3 -m pip --version, ruby -v, bundle -v, and gem --version; paste the outputs. Prefer automation? Use "Check my Windows/WSL setup" on the Toolchain Trail to generate a report for you.',
   'editor-isle-tower': 'Run code --version and paste its output.',
   'git-village-hall': 'Run git --version, git config --global --get user.name, and git config --global --get user.email; paste the outputs (you may redact the email domain).',
   'github-gateway-arch': 'Run git remote -v and git ls-remote --heads origin; paste the outputs. This confirms reachability, not authentication.',
