@@ -38,6 +38,8 @@ import ProfileManager from '@assets/js/projects/cs-pathway/model/ProfileManager.
 import LocalProfile from '@assets/js/projects/cs-pathway/model/localProfile.js';
 import StationVerificationTrial from './StationVerificationTrial.js';
 import TrailPath from './TrailPath.js';
+import PathwayScoreboard from './PathwayScoreboard.js';
+import { recordLevelRatio } from '../model/pathwayScores.js';
 import {
   STATION_STATUS,
   formatStationGlyph,
@@ -804,6 +806,8 @@ class GameLevelCsPath4Toolchain {
 
     this.profilePanelView = new StatusPanel(panelConfig);
     this.profilePanelView.render();
+    this.scoreboard = new PathwayScoreboard({ currentLevelKey: 'toolchain-trail', basePath: this.gameEnv.path });
+    this.scoreboard.show();
 
     /**
      * Section: station status derivation + persistence.
@@ -859,6 +863,7 @@ class GameLevelCsPath4Toolchain {
           score,
           allDone ? new Date().toISOString() : null,
         );
+        recordLevelRatio('toolchain-trail', this.completedStations.size, this.STATIONS.length);
       }
     };
 
@@ -1200,6 +1205,7 @@ class GameLevelCsPath4Toolchain {
 
   destroy() {
     console.log(`[${this.logPrefix}] tearing down level...`);
+    this.scoreboard?.destroy();
     if (this._stuckCheckInterval) clearInterval(this._stuckCheckInterval);
     this._hideLoading();
     this.clearZoneAlert?.();

@@ -3,6 +3,7 @@ import GamEnvBackground from '@assets/js/GameEnginev1.1/essentials/GameEnvBackgr
 import CsPathwayPlayer from './CsPathwayPlayer.js';
 import Npc from '@assets/js/GameEnginev1.1/essentials/Npc.js';
 import GameLevelCsPathIdentity from './GameLevelCsPathIdentity.js';
+import { completeLevelTask } from '../model/pathwayScores.js';
 
 // ── Code Hub Progress (localStorage) ─────────────────────────────────────────
 const CH_KEY = 'code_hub_progress';
@@ -13,6 +14,10 @@ function saveCHProgress(updates) {
   const p = getCHProgress();
   Object.assign(p, updates);
   localStorage.setItem(CH_KEY, JSON.stringify(p));
+  // Code Hub is one Wayfinding World task, done once all three challenges are.
+  if (p.frontendCompleted && p.backendCompleted && p.datavizCompleted) {
+    completeLevelTask('wayfinding-world', 'code-hub');
+  }
 }
 
 // ── CSS animations (injected once) ───────────────────────────────────────────

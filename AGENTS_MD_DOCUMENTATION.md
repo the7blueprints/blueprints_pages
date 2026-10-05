@@ -137,6 +137,13 @@ Names should:
 
 * **Update this file:** As you iterate, make mistakes, and learn new system patterns or constraints, actively update `AGENTS.md` (and its optimized counterpart) with important notes so the system improves over time.
 
+## CS Pathway level scores
+
+* **Data flow:** each level's score is its percent complete (0–100). The game records it through [model/pathwayScores.js](_projects/games/cs-pathway/model/pathwayScores.js) (`completeLevelTask` for task-based levels, `recordLevelRatio` for ratio levels like Mission Tools and Toolchain Trail) and saves it via [services/PathwayScoreApi.js](_projects/games/cs-pathway/services/PathwayScoreApi.js) to Spring `PUT /api/cs-pathway/scores/{levelKey}`. The student comes from the Spring JWT cookie; never send a uid in the body.
+* **Storage:** Spring (blueprint-spring `mvc/cspathway`) reuses the existing `stats` table: `module = "cs-pathway"`, `submodule` 0–4 for the five levels, `grades` = percent, `finished` = reached 100%. Don't change the `stats` schema or renumber submodules. Scores only go up, on both client and server.
+* **Adding tasks/levels:** add task ids to `PATHWAY_LEVELS` and keep level keys in sync with Spring's `CsPathwayLevel` enum. The `PathwayScoreboard` (top-right on every level page) picks them up. Teacher view: Spring `/mvc/cs-pathway/read`.
+* **Nested-project gotcha:** `make`'s `watch-projects` derives the wrong folder name for nested projects like `games/cs-pathway`, so it won't rebuild them. After edits, run `make -C _projects/games/cs-pathway build` and restart `make`.
+
 ## Anti-Patterns
 
 ### God Functions

@@ -146,6 +146,13 @@ while preserving all critical instructions. The agent must still communicate wit
 * **代码重复警告：** 聊天逻辑存在于多处——规范源是 [assets/js/projects/student-management-groups/groups.js](assets/js/projects/student-management-groups/groups.js)（"CHAT FUNCTIONALITY" 段），但 [_includes/group_dashboard.html](_includes/group_dashboard.html) 与 [_includes/lesson_chat.html](_includes/lesson_chat.html) 内嵌了副本；修改后必须手动同步这些 include，否则行为不一致。
 * **课程聊天约定：** lesson 页面通过 frontmatter `chat: true` 启用，共享 backbone 群组 `"lessons"`，以 `[[lesson:<url>]]` 标记按页面隔离。
 
+## CS Pathway 关卡分数
+
+* **数据流：** 每个关卡的分数 = 完成百分比（0–100）。前端由 [model/pathwayScores.js](_projects/games/cs-pathway/model/pathwayScores.js) 统一记录（`completeLevelTask` 用于任务型关卡，`recordLevelRatio` 用于 Mission Tools/Toolchain Trail 这类比例型关卡），并通过 [services/PathwayScoreApi.js](_projects/games/cs-pathway/services/PathwayScoreApi.js) 写入 Spring `PUT /api/cs-pathway/scores/{levelKey}`；学生身份取自 Spring JWT cookie，不在请求体里传 uid。
+* **存储：** Spring（blueprint-spring `mvc/cspathway`）复用现有 `stats` 表：`module = "cs-pathway"`，`submodule` 0–4 对应五个关卡，`grades` = 百分比，`finished` = 达到 100%。不要改 `stats` 表结构，也不要重新编号 submodule。分数只增不减（前后端都如此）。
+* **新增任务/关卡：** 在 `PATHWAY_LEVELS` 中添加任务 id，并保持 levelKey 与 Spring 的 `CsPathwayLevel` 枚举一致。每个关卡页右上角的 `PathwayScoreboard` 会自动显示。教师视图：Spring `/mvc/cs-pathway/read`。
+* **嵌套项目注意：** `make` 的 `watch-projects` 对 `games/cs-pathway` 这类嵌套项目取错目录名，不会自动重建；修改后手动运行 `make -C _projects/games/cs-pathway build` 并重启 `make`。
+
 ## 反模式
 
 ### 上帝函数

@@ -16,6 +16,8 @@ import MissionTools from './GameLevelCsPath2Mission.js';
 import { refreshCourseNavigation } from '@assets/js/projects/cs-pathway/model/courseNavigation.js';
 import SprintSuccessModule from './SprintSuccessModule.js';
 import PersonaTrial from './PersonaTrial.js';
+import PathwayScoreboard from './PathwayScoreboard.js';
+import { completeLevelTask } from '../model/pathwayScores.js';
 
 /**
  * GameLevel CS Pathway - Wayfinding World
@@ -65,6 +67,8 @@ class GameLevelCsPath1Way extends GameLevelCsPathIdentity {
       skill: '—',
       ...this._getCompletionPanelValues(),
     });
+    this.scoreboard = new PathwayScoreboard({ currentLevelKey: 'wayfinding-world', basePath: this.gameEnv.path });
+    this.scoreboard.show();
 
     /**
      * Section: Level objects.
@@ -419,6 +423,7 @@ class GameLevelCsPath1Way extends GameLevelCsPathIdentity {
       onComplete: async (result) => {
         try {
           await this.saveAboutMeResult(result);
+          completeLevelTask('wayfinding-world', 'about-me');
           this.showToast?.(`About Me complete: ${result.title}`);
           this.profilePanelView?.update?.({
             skill: 'About Me Builder',
@@ -487,6 +492,7 @@ class GameLevelCsPath1Way extends GameLevelCsPathIdentity {
       onComplete: async (result) => {
         try {
           await this.savePersonaResult(result);
+          completeLevelTask('wayfinding-world', 'persona-trial');
           this.showToast?.(`Persona updated: ${result.title}`);
           this.profilePanelView?.update?.({ persona: result.title });
         } catch (error) {
@@ -513,6 +519,7 @@ class GameLevelCsPath1Way extends GameLevelCsPathIdentity {
       onComplete: async (result) => {
         try {
           await this.saveSprintSuccessResult(result);
+          completeLevelTask('wayfinding-world', 'sprint-success');
           this.showToast?.(`Sprint Success complete: ${result.title}`);
           this.profilePanelView?.update?.({
             skill: result.title,
