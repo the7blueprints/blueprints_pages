@@ -605,10 +605,9 @@ class GameLevelCsPath4Toolchain {
         interactDistance: 120,
         alertDistance: 0.22,
         zoneMessage: `${station.name}: Press E to interact.`,
-        reaction: function () {
-          void level.runStation(station.id, true);
-          if (level.showToast) level.showToast('Press E to interact');
-        },
+        // No approach reaction: walking up only shows the "Press E" zone alert
+        // (see update()). Auto-running the station here opened a dialogue that
+        // paused the game, so the E key was ignored.
         interact: async function () {
           await level.runStation(station.id, false);
         },
@@ -1155,6 +1154,15 @@ class GameLevelCsPath4Toolchain {
   update() {
     const player = this.gameEnv?.gameObjects?.find((obj) => obj?.constructor?.name === 'Player' || obj?.constructor?.name === 'CsPathwayPlayer');
     if (!player || !Array.isArray(this._gatekeeperObjects)) return;
+
+    // Don't draw the "Press E" alert over an open station panel (it covered its Close button).
+    if (this._stationTrialOpen) {
+      if (this._activeZoneStationId) {
+        this.clearZoneAlert();
+        this._activeZoneStationId = null;
+      }
+      return;
+    }
 
     const nearest = this._findNearestGatekeeperInZone(player, this._gatekeeperObjects);
     if (nearest) {

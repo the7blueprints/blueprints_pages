@@ -135,5 +135,30 @@ class MacSetupAgentCheckModeTest(unittest.TestCase):
         self.assertNotIn(mac_setup_checks.REPORT_START, output)
 
 
+class MacSetupAgentDiagnosisTest(unittest.TestCase):
+    """Rules must match both zsh errors (typed commands) and bash errors (setup scripts)."""
+
+    def assert_fix(self, output, expected_fix_text, command="bash scripts/activate_macos.sh"):
+        result = mac_setup_agent.diagnose(command, 1, output)
+        self.assertIsNotNone(result, output)
+        self.assertIn(expected_fix_text, result)
+
+    def test_missing_homebrew_in_zsh_and_inside_a_bash_script(self):
+        self.assert_fix("zsh: command not found: brew", "brew.sh", command="brew update")
+        self.assert_fix("scripts/activate_macos.sh: line 20: brew: command not found", "brew.sh")
+        self.assert_fix("Homebrew isn't installed. Install it from https://brew.sh, open a new Terminal, then run this script again.", "brew.sh")
+
+    def test_script_without_execute_permission_suggests_bash(self):
+        self.assert_fix("zsh: permission denied: ./scripts/activate_macos.sh", "bash scripts/",
+                        command="./scripts/activate_macos.sh")
+
+    def test_gem_install_into_system_ruby_suggests_reloading_shell(self):
+        self.assert_fix("You don't have write permissions for the /Library/Ruby/Gems/2.6.0 directory.",
+                        "source ~/.zshrc")
+
+    def test_unknown_error_is_not_diagnosed(self):
+        self.assertIsNone(mac_setup_agent.diagnose("bash scripts/activate_macos.sh", 1, "something unexpected"))
+
+
 if __name__ == "__main__":
     unittest.main()

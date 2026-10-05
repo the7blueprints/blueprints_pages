@@ -1,6 +1,6 @@
-// "Check my Mac setup" button + panel (levels/MacSetupCheck.js), Toolchain Trail only.
-// Button sits with the game's panels (z-index 10000); the panel matches the
-// level's OS picker (z-index 100060) so it covers dialogues.
+// "Set up & check my Mac" button + panel (levels/MacSetupCheck.js), Toolchain Trail only.
+// Button sits above the game canvas but below station panels (1200+); the
+// panel matches the level's OS picker (z-index 100060) so it covers dialogues.
 $mac-check-accent: #38bdf8;
 $mac-check-pass: #4ecca3;
 $mac-check-fail: #f87171;
@@ -14,7 +14,7 @@ $mac-check-font: "Courier New", monospace;
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 10001;
+  z-index: 1100;
   padding: 12px 22px;
   border: 2px solid $mac-check-accent;
   border-radius: 999px;
@@ -131,6 +131,25 @@ $mac-check-font: "Courier New", monospace;
     margin-top: 10px;
   }
 
+  &__steps {
+    margin: 8px 0 14px;
+    padding-left: 22px;
+  }
+
+  &__step {
+    margin-bottom: 12px;
+
+    strong {
+      display: block;
+      margin-bottom: 4px;
+      color: $mac-check-accent;
+    }
+
+    .cs-pathway-mac-check__note {
+      margin: 4px 0 0;
+    }
+  }
+
   &__note {
     color: #94a3b8;
     font-size: 0.85em;
@@ -154,12 +173,22 @@ $mac-check-font: "Courier New", monospace;
       border-bottom: 1px solid rgba(56, 189, 248, 0.15);
     }
 
-    li.is-pass span { color: $mac-check-pass; }
-    li.is-fail span { color: $mac-check-fail; }
+    li.is-pass { color: $mac-check-pass; }
+    li.is-warn { color: $mac-check-partial; }
+    li.is-fail { color: $mac-check-fail; }
+  }
 
-    li code {
-      display: block;
-      margin: 2px 0 0 18px;
+  &__next-heading {
+    margin-top: 12px;
+    color: $mac-check-accent;
+    font-weight: bold;
+  }
+
+  &__results ul.cs-pathway-mac-check__next-steps {
+    padding-left: 18px;
+    list-style: disc;
+
+    li {
       color: $mac-check-text;
     }
   }

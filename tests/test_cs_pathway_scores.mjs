@@ -97,3 +97,9 @@ test("levels link forward in play order and the last level has no next level", (
   assert.equal(getNextLevel("toolchain-trail"), null);
   assert.throws(() => getNextLevel("not-a-level"), /Unknown CS Pathway level/);
 });
+
+test("every level has a short name for the scores bar", () => {
+  for (const key of ["identity-forge", "wayfinding-world", "mission-tools", "assessment-observatory"]) {
+    assert.ok(getNextLevel(key).shortName, key);
+  }
+});

@@ -1,5 +1,5 @@
 // Next-level link (levels/NextLevelLink.js): always shown, pulses once the level is complete.
-// Above the game's status panels (z-index 10000), below its dialogues (100050).
+// Above the game canvas but below the levels' own overlays and station panels (1200+).
 $next-level-accent: #4ecca3;
 
 .cs-pathway-next-level {
@@ -7,7 +7,7 @@ $next-level-accent: #4ecca3;
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 10001;
+  z-index: 1100;
   padding: 12px 22px;
   border: 2px solid $next-level-accent;
   border-radius: 999px;

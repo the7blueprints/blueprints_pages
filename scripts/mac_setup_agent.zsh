@@ -35,7 +35,9 @@ if [[ -z "$MAC_AGENT_PYTHON3" ]]; then
     echo "mac_setup_agent: python3 not found at setup time - error diagnosis disabled for this session (✓ success markers still work)."
 fi
 
-MAC_AGENT_PREFIXES=(brew xcode-select java javac python3 pip3 git code softwareupdate gem bundle)
+# The install script is watched too, so a failed Toolchain Trail install step gets a fix tip.
+MAC_AGENT_PREFIXES=(brew xcode-select java javac python3 pip3 git code softwareupdate gem bundle
+    "bash scripts/activate_macos.sh" "./scripts/activate_macos.sh")
 
 _mac_agent_is_relevant() {
     local cmd="$1"

@@ -43,7 +43,8 @@ export default class StationVerificationTrial {
         .svt-overlay {
           position: fixed;
           inset: 0;
-          z-index: 9999;
+          /* Above the level's status panels (10000) and zone alerts (100010). */
+          z-index: 100040;
           background: radial-gradient(circle at 50% 20%, rgba(30,10,60,0.92), rgba(2,2,10,0.97));
           display: flex;
           align-items: center;

@@ -34,12 +34,24 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 RULES = [
     {
+        # Setup scripts are committed without the execute bit, so ./scripts/x.sh fails.
+        "match": r"permission denied: \S*scripts/\S+\.sh",
+        "diagnosis": "That script isn't marked as executable.",
+        "fix": "Run it with bash instead, e.g. bash scripts/activate_macos.sh",
+    },
+    {
+        # activate_macos.sh adds Homebrew Ruby to ~/.zshrc but not to the running script's PATH.
+        "match": r"don't have write permissions for the /Library/Ruby/Gems",
+        "diagnosis": "gem is still using macOS's built-in Ruby, which you can't install into.",
+        "fix": "Run: source ~/.zshrc (so Homebrew Ruby is used), then run bash scripts/activate_macos.sh again.",
+    },
+    {
         "match": r"xcrun: error: invalid active developer path",
         "diagnosis": "Xcode Command Line Tools aren't installed.",
         "fix": "Run: xcode-select --install",
     },
     {
-        "match": r"command not found: brew",
+        "match": r"command not found: brew|\bbrew: command not found|Homebrew isn't installed",
         "diagnosis": "Homebrew isn't installed (or not on PATH).",
         "fix": "Install it from https://brew.sh, then restart your terminal.",
     },
@@ -49,7 +61,7 @@ RULES = [
         "fix": "Run: sudo chown -R $(whoami) $(brew --prefix)/*",
     },
     {
-        "match": r"command not found: java|Unable to locate a Java Runtime|No Java runtime present",
+        "match": r"command not found: java|\bjava: command not found|Unable to locate a Java Runtime|No Java runtime present",
         "diagnosis": "Java isn't installed (or not on PATH).",
         "fix": "Run: brew install openjdk",
     },
@@ -74,17 +86,17 @@ RULES = [
         "fix": 'Run: git config --global user.name "Your Name" && git config --global user.email "you@example.com"',
     },
     {
-        "match": r"command not found: python3?\b",
+        "match": r"command not found: python3?\b|\bpython3?: command not found",
         "diagnosis": "Python isn't installed (or not on PATH).",
         "fix": "Run: brew install python",
     },
     {
-        "match": r"command not found: pip3?\b",
+        "match": r"command not found: pip3?\b|\bpip3?: command not found",
         "diagnosis": "pip isn't installed (or not on PATH).",
         "fix": "Run: python3 -m ensurepip --upgrade",
     },
     {
-        "match": r"command not found: code\b",
+        "match": r"command not found: code\b|\bcode: command not found",
         "diagnosis": "VS Code's `code` command isn't on PATH.",
         "fix": "In VS Code: Cmd+Shift+P -> Shell Command: Install 'code' command in PATH",
     },

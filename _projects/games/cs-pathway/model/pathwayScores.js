@@ -14,23 +14,26 @@ export const PATHWAY_LEVELS = [
   {
     key: 'identity-forge',
     name: 'Identity Forge',
+    shortName: 'Forge',
     pagePath: '/cs-pathway',
     tasks: ['identity', 'course', 'persona', 'avatar', 'theme'],
   },
   {
     key: 'wayfinding-world',
     name: 'Wayfinding World',
+    shortName: 'Wayfinding',
     pagePath: '/cs-pathway/wayfinding',
     tasks: ['code-hub', 'persona-trial', 'about-me', 'sprint-success', 'empathy-epic'],
   },
-  { key: 'mission-tools', name: 'Mission Tools', pagePath: '/cs-pathway/mission-tools', tasks: null },
+  { key: 'mission-tools', name: 'Mission Tools', shortName: 'Mission', pagePath: '/cs-pathway/mission-tools', tasks: null },
   {
     key: 'assessment-observatory',
     name: 'Assessment Observatory',
+    shortName: 'Assessment',
     pagePath: '/cs-pathway/assessment-observatory',
     tasks: ['ai-skill-advisor', 'github-analytics', 'sprint-coach'],
   },
-  { key: 'toolchain-trail', name: 'Toolchain Trail', pagePath: '/cs-pathway/toolchain-trail', tasks: null },
+  { key: 'toolchain-trail', name: 'Toolchain Trail', shortName: 'Toolchain', pagePath: '/cs-pathway/toolchain-trail', tasks: null },
 ];
 
 const TASKS_STORAGE_KEY = 'cs_pathway_level_tasks';

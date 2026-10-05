@@ -157,7 +157,7 @@ To print every check and its remediation directly in the terminal without
 creating a Markdown report, run:
 
 ```bash
-bash /scripts/verifyToolsTerminal.sh
+bash scripts/verifyToolsTerminal.sh
 ```
 
 ### macOS Terminal Setup Helper (optional)
@@ -182,10 +182,15 @@ python3 scripts/mac_setup_agent.py --check
 ```
 
 It only reads versions and settings; nothing is installed or changed. It prints a report with a fix for
-each failed check and exits `0` (all passed), `1` (something to fix), or `2` (not a Mac). In the CS Pathway
-game, the **Check my Mac setup** button in Toolchain Trail (shown when macOS is selected) gives students
-this command and checks the pasted report. Tests: `python3 -m unittest discover -s scripts -p 'test_mac_setup_agent.py'`
-and `node --test tests/test_mac_setup_report.mjs`.
+each failed check and exits `0` (all passed), `1` (something to fix), or `2` (not a Mac).
+
+In the CS Pathway game, the **Set up & check my Mac** button in Toolchain Trail (shown when macOS is selected)
+walks students through these commands in their own Terminal: `source scripts/mac_setup_agent.zsh` (agent on),
+`bash scripts/activate_macos.sh` (install), `source ~/.zshrc`, then `bash scripts/verifyToolsTerminal.sh`
+(verify). They paste the verifier's output back and the page shows what passed and the next steps. The agent
+also watches the install script, so a failed install gets a fix tip. Scripts are run with `bash` because they
+are committed without the execute bit. Tests: `python3 -m unittest discover -s scripts -p 'test_mac_setup_agent.py'`
+and `node --test tests/test_verify_tools_report.mjs`.
 
 ### Jupyter Kernels
 
