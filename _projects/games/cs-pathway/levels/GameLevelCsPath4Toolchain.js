@@ -738,9 +738,11 @@ class GameLevelCsPath4Toolchain {
       if (!this._zoneAlertEl) {
         const zoneAlert = document.createElement('div');
         zoneAlert.style.cssText = createNotificationStyle('auto', 100010);
-        // Keep the interaction prompt below the top-right level scoreboard.
+        // Keep the interaction prompt completely away from the top-right scoreboard.
         zoneAlert.style.bottom = '16px';
-        zoneAlert.style.width = 'min(620px, calc(100vw - 40px))';
+        zoneAlert.style.right = 'auto';
+        zoneAlert.style.left = '20px';
+        zoneAlert.style.width = 'min(360px, calc(100vw - 40px))';
         zoneAlert.style.textAlign = 'center';
         document.body.appendChild(zoneAlert);
         this._zoneAlertEl = zoneAlert;
