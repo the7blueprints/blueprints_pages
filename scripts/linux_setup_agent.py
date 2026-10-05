@@ -14,6 +14,7 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 ANSI = re.compile(r'\x1b\][^\x07]*(?:\x07|\x1b\\)|\x1b\[[0-?]*[ -/]*[@-~]')
+REPORT_VERSION = 1
 
 
 def plain(text):
@@ -232,11 +233,81 @@ def probe(command):
         return False, str(exc)
 
 
+def is_wsl():
+    """Return True when the Linux agent is running inside Windows Subsystem for Linux."""
+    if os.environ.get('WSL_DISTRO_NAME') or os.environ.get('WSL_INTEROP'):
+        return True
+    try:
+        return 'microsoft' in Path('/proc/version').read_text(errors='replace').lower()
+    except OSError:
+        return False
+
+
+def _report_check(check_id, label, ok, fix):
+    return {'id': check_id, 'label': label, 'passed': bool(ok), 'fix': fix}
+
+
+def collect_setup_checks(project, debian):
+    """Run the read-only checks used by the Toolchain Trail setup panel."""
+    package_prefix = 'sudo apt update && sudo apt install' if debian else 'your distribution package manager to install'
+    command_checks = [
+        ('git', 'Git', ['git', '--version'], r'git version \d', f'Run: {package_prefix} git'),
+        ('git-name', 'Git user.name set', ['git', 'config', '--global', 'user.name'], r'\S', 'Run: git config --global user.name "Your Name"'),
+        ('git-email', 'Git user.email set', ['git', 'config', '--global', 'user.email'], r'^[^\s@]+@[^\s@]+$', 'Run: git config --global user.email "you@example.com"'),
+        ('python3', 'Python 3', ['python3', '--version'], r'Python 3\.\d+', f'Run: {package_prefix} python3'),
+        ('pip', 'pip', ['python3', '-m', 'pip', '--version'], r'pip \d', f'Run: {package_prefix} python3-pip'),
+        ('ruby', 'Ruby', ['ruby', '--version'], r'ruby \d', f'Run: {package_prefix} ruby-full'),
+        ('rubygems', 'RubyGems', ['gem', '--version'], r'^\d+\.\d+', f'Run: {package_prefix} ruby-full'),
+        ('bundler', 'Bundler', ['bundle', '--version'], r'(?:Bundler version )?\d+\.\d+', 'Run: gem install bundler'),
+        ('java', 'Java', ['java', '-version'], r'version "?\d', f'Run: {package_prefix} default-jdk'),
+        ('vscode', 'VS Code code command', ['code', '--version'], r'^\d+\.\d+', 'Install VS Code and its command-line launcher. In WSL, install VS Code on Windows with the WSL extension.'),
+    ]
+    results = []
+    for check_id, label, command, pattern, fix in command_checks:
+        executable = shutil.which(command[0])
+        ok, detail = probe([executable, *command[1:]]) if executable else (False, 'Not found in PATH')
+        passed = ok and bool(re.search(pattern, detail, re.IGNORECASE | re.MULTILINE))
+        results.append(_report_check(check_id, label, passed, fix))
+
+    venv_ok = (project / 'venv' / 'bin' / 'python3').exists()
+    results.extend([
+        _report_check(
+            'pages-repo',
+            'Pages repository cloned',
+            (project / '.git').is_dir() and (project / '_config.yml').is_file(),
+            'Clone your pages repository and run this command from inside it.',
+        ),
+        _report_check(
+            'project-venv',
+            'Project venv created',
+            venv_ok,
+            'From the project folder run: ./scripts/venv.sh',
+        ),
+    ])
+    return results
+
+
+def format_setup_report(results, system):
+    """Format a stable report that the Toolchain Trail can parse after pasting."""
+    system = system.upper()
+    lines = [f'=== {system} SETUP CHECK v{REPORT_VERSION} ===']
+    for result in results:
+        if result['passed']:
+            lines.append(f"PASS {result['id']} | {result['label']}")
+        else:
+            lines.append(f"FAIL {result['id']} | {result['label']} | {result['fix']}")
+    passed = sum(1 for result in results if result['passed'])
+    lines.append(f'SUMMARY {passed}/{len(results)} passed')
+    lines.append(f'=== END {system} SETUP CHECK ===')
+    return '\n'.join(lines)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument('--log', type=Path, help='Analyze a saved terminal error locally')
     mode.add_argument('--watch', action='store_true', help='Open live Bash help in this project (Linux/WSL only)')
+    mode.add_argument('--check', action='store_true', help='Print a setup report for the Toolchain Trail game')
     parser.add_argument('--project', type=Path, default=PROJECT_ROOT, help='Project folder; defaults to the checkout containing this script')
     parser.add_argument('--color', choices=['auto', 'always', 'never'], default='auto', help='Yellow diagnostic text (default: auto)')
     parser.add_argument('--distro', choices=['debian', 'other'], help='Target Linux family for saved logs; useful when analyzing on a Mac')
@@ -273,6 +344,11 @@ def main():
         return 2
     if args.watch:
         return watch(project, debian, color)
+    if args.check:
+        system = 'WINDOWS' if is_wsl() else 'LINUX'
+        results = collect_setup_checks(project, debian)
+        print(format_setup_report(results, system))
+        return 0 if all(result['passed'] for result in results) else 1
     print(f'Project: {project}\nEnter it with: cd -- {shlex.quote(str(project))}')
     print('For help after each failed command: python3 scripts/linux_setup_agent.py --watch')
     failed = False

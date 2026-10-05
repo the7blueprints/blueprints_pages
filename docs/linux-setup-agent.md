@@ -78,6 +78,23 @@ the terminal where it runs. For saved output, put the error text in a file:
 python3 scripts/linux_setup_agent.py --log setup-error.txt --distro debian
 ```
 
+Toolchain Trail can also display a full setup report. Select Linux or Kasm at
+the start of the game, open **Check my setup**, and run the command it shows:
+
+```bash
+python3 scripts/linux_setup_agent.py --check
+```
+
+Windows students select Windows and run the Windows entry point inside WSL
+Ubuntu. It uses the same checks but labels the report for the Windows path:
+
+```bash
+python3 scripts/windows_setup_agent.py --check
+```
+
+Paste the complete report into the game. The checks are read-only and the game
+rejects reports that do not match the operating system selected at the start.
+
 Use `debian` for Ubuntu, Debian, Mint, or Kali; use `other` for other Linux
 families. This option affects log advice only. Nothing is uploaded. Review logs
 for secrets before sharing them with anyone. Check/log exit codes:

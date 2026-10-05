@@ -11,12 +11,45 @@ import time
 import unittest
 from pathlib import Path
 
-from linux_setup_agent import LiveFeedback, diagnose, feedback
+from linux_setup_agent import LiveFeedback, diagnose, feedback, format_setup_report, is_wsl
 
 SCRIPT = Path(__file__).with_name('linux_setup_agent.py')
+WINDOWS_SCRIPT = Path(__file__).with_name('windows_setup_agent.py')
 
 
 class LinuxSetupTests(unittest.TestCase):
+    def test_setup_report_has_stable_linux_markers_and_fixes(self):
+        report = format_setup_report([
+            {'id': 'git', 'label': 'Git', 'passed': True, 'fix': ''},
+            {'id': 'vscode', 'label': 'VS Code', 'passed': False, 'fix': 'Install VS Code.'},
+        ], 'linux')
+        self.assertIn('=== LINUX SETUP CHECK v1 ===', report)
+        self.assertIn('PASS git | Git', report)
+        self.assertIn('FAIL vscode | VS Code | Install VS Code.', report)
+        self.assertIn('SUMMARY 1/2 passed', report)
+        self.assertTrue(report.endswith('=== END LINUX SETUP CHECK ==='))
+
+    def test_wsl_environment_is_detected_as_windows(self):
+        previous = os.environ.get('WSL_DISTRO_NAME')
+        os.environ['WSL_DISTRO_NAME'] = 'Ubuntu-24.04'
+        try:
+            self.assertTrue(is_wsl())
+        finally:
+            if previous is None:
+                os.environ.pop('WSL_DISTRO_NAME', None)
+            else:
+                os.environ['WSL_DISTRO_NAME'] = previous
+
+    @unittest.skipIf(is_wsl(), 'This guard is only expected outside WSL')
+    def test_windows_entry_point_requires_wsl(self):
+        result = subprocess.run(
+            [sys.executable, str(WINDOWS_SCRIPT), '--check'],
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 2)
+        self.assertIn('must run inside a WSL Ubuntu terminal', result.stdout)
+
     def test_unknown_is_not_success(self):
         self.assertEqual(diagnose('an unfamiliar failure', True), [])
 

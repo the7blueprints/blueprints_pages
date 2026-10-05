@@ -48,13 +48,15 @@ export default class StationVerificationTrial {
           display: flex;
           align-items: center;
           justify-content: center;
+          box-sizing: border-box;
+          padding: 20px;
           font-family: "Courier New", monospace;
           color: #dbeafe;
         }
 
         .svt-modal {
-          width: min(880px, 94vw);
-          max-height: 90vh;
+          width: min(820px, 100%);
+          max-height: calc(100vh - 40px);
           overflow: hidden;
           background: linear-gradient(180deg, #0b1026, #030410);
           border: 2px solid #7dd3fc;
@@ -65,7 +67,7 @@ export default class StationVerificationTrial {
         }
 
         .svt-header {
-          padding: 16px 22px;
+          padding: 14px 18px;
           border-bottom: 1px solid rgba(125, 211, 252, 0.35);
           background: rgba(8, 12, 32, 0.9);
           display: flex;
@@ -75,10 +77,11 @@ export default class StationVerificationTrial {
         }
 
         .svt-title {
-          font-size: 20px;
+          font-size: 18px;
           font-weight: bold;
           color: #67e8f9;
           letter-spacing: 0.5px;
+          line-height: 1.25;
         }
 
         .svt-skill {
@@ -111,18 +114,19 @@ export default class StationVerificationTrial {
         .svt-close:hover { background: rgba(127, 29, 29, 0.35); }
 
         .svt-body {
-          padding: 18px 22px;
+          padding: 16px 18px;
           overflow: auto;
           display: grid;
-          grid-template-columns: 1fr 1.3fr;
-          gap: 18px;
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+          gap: 14px;
         }
 
         .svt-panel {
           background: rgba(10, 14, 36, 0.85);
           border: 1px solid rgba(125, 211, 252, 0.25);
           border-radius: 12px;
-          padding: 14px;
+          padding: 12px;
+          min-width: 0;
         }
 
         .svt-panel h4 {
@@ -203,7 +207,7 @@ export default class StationVerificationTrial {
           display: flex;
           justify-content: flex-end;
           gap: 10px;
-          padding: 14px 22px;
+          padding: 12px 18px;
           border-top: 1px solid rgba(125, 211, 252, 0.3);
           background: rgba(8, 12, 32, 0.9);
         }
@@ -229,7 +233,7 @@ export default class StationVerificationTrial {
           cursor: not-allowed;
         }
 
-                .svt-checks {
+        .svt-checks {
           margin-top: 10px;
           display: flex;
           flex-direction: column;
@@ -256,7 +260,7 @@ export default class StationVerificationTrial {
           color: #fca5a5;
         }
 
-                .svt-verify {
+        .svt-verify {
           margin-top: 12px;
           padding: 10px 12px;
           border: 1px dashed rgba(251, 191, 36, 0.6);
@@ -267,7 +271,7 @@ export default class StationVerificationTrial {
         }
         .svt-verify strong { color: #fbbf24; }
 
-                .svt-prompt {
+        .svt-prompt {
           font-size: 12px;
           color: #fbbf24;
           margin-bottom: 8px;
@@ -287,8 +291,23 @@ export default class StationVerificationTrial {
           white-space: pre;
         }
 
-        @media (max-width: 760px) {
+        @media (max-width: 860px) {
           .svt-body { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 520px) {
+          .svt-overlay { padding: 10px; }
+          .svt-modal { max-height: calc(100vh - 20px); }
+          .svt-header {
+            padding: 12px;
+            flex-direction: column;
+          }
+          .svt-body { padding: 12px; }
+          .svt-actions {
+            padding: 12px;
+            flex-direction: column-reverse;
+          }
+          .svt-btn { width: 100%; }
         }
       </style>
 
