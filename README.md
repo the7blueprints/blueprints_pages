@@ -187,27 +187,6 @@ game, the **Check my Mac setup** button in Toolchain Trail (shown when macOS is 
 this command and checks the pasted report. Tests: `python3 -m unittest discover -s scripts -p 'test_mac_setup_agent.py'`
 and `node --test tests/test_mac_setup_report.mjs`.
 
-### Linux and Windows/WSL Toolchain Trail Agents
-
-Toolchain Trail asks students to choose an operating system when the level
-starts. Linux and Kasm students can open **Check my setup** and run:
-
-```bash
-python3 scripts/linux_setup_agent.py --check
-```
-
-Windows students run the Windows agent inside WSL Ubuntu:
-
-```bash
-python3 scripts/windows_setup_agent.py --check
-```
-
-Both agents print a read-only setup report for the game panel. The Windows
-report is copied to the Windows clipboard when `clip.exe` is available. The
-existing macOS checker and command remain unchanged. Tests: `python3 -m unittest
-discover -s scripts -p 'test_linux_setup_agent.py'` and `node --test
-tests/test_system_setup_report.mjs`.
-
 ### Jupyter Kernels
 
 To run many of the IPYNB files you will need to install Jupyter kernels for the languages you want to use. Here are the most common and recommended kernels:

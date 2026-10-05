@@ -1,37 +1,37 @@
-// "Check my Mac setup" button + panel (levels/MacSetupCheck.js), Toolchain Trail only.
-// Button sits with the game's panels (z-index 10000); the panel matches the
-// level's OS picker (z-index 100060) so it covers dialogues.
-$mac-check-accent: #38bdf8;
-$mac-check-pass: #4ecca3;
-$mac-check-fail: #f87171;
-$mac-check-partial: #fbbf24;
-$mac-check-text: #dbeafe;
-$mac-check-bg: #04060f;
-$mac-check-font: "Courier New", monospace;
+// Shared setup-agent button and report panel for every supported operating system.
+$setup-check-accent: #38bdf8;
+$setup-check-pass: #4ecca3;
+$setup-check-fail: #f87171;
+$setup-check-partial: #fbbf24;
+$setup-check-text: #dbeafe;
+$setup-check-bg: #04060f;
+$setup-check-font: "Courier New", monospace;
 
-.cs-pathway-mac-check-button {
+.cs-pathway-mac-check-button,
+.cs-pathway-system-check-button {
   position: fixed;
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 10001;
   padding: 12px 22px;
-  border: 2px solid $mac-check-accent;
+  border: 2px solid $setup-check-accent;
   border-radius: 999px;
   background: rgba(13, 13, 26, 0.92);
-  color: $mac-check-accent;
-  font-family: $mac-check-font;
+  color: $setup-check-accent;
+  font-family: $setup-check-font;
   font-weight: bold;
   cursor: pointer;
 
   &:hover,
   &:focus-visible {
-    background: $mac-check-accent;
-    color: $mac-check-bg;
+    background: $setup-check-accent;
+    color: $setup-check-bg;
   }
 }
 
-.cs-pathway-mac-check {
+.cs-pathway-mac-check,
+.cs-pathway-system-check {
   position: fixed;
   inset: 0;
   z-index: 100060;
@@ -48,37 +48,32 @@ $mac-check-font: "Courier New", monospace;
     overflow-y: auto;
     box-sizing: border-box;
     padding: 24px 28px;
-    border: 1.5px solid $mac-check-accent;
+    border: 1.5px solid $setup-check-accent;
     border-radius: 10px;
-    background: $mac-check-bg;
-    color: $mac-check-text;
-    font-family: $mac-check-font;
+    background: $setup-check-bg;
+    color: $setup-check-text;
+    font-family: $setup-check-font;
     font-size: 0.9em;
     line-height: 1.5;
 
     h2 {
       margin: 0 0 12px;
-      color: $mac-check-accent;
+      color: $setup-check-accent;
       font-size: 1.15em;
     }
 
-    p {
-      margin: 10px 0 6px;
-    }
-
-    code {
-      color: $mac-check-pass;
-    }
+    p { margin: 10px 0 6px; }
+    code { color: $setup-check-pass; }
 
     textarea {
       width: 100%;
       box-sizing: border-box;
       padding: 8px;
-      border: 1px solid $mac-check-accent;
+      border: 1px solid $setup-check-accent;
       border-radius: 6px;
       background: #0b1026;
-      color: $mac-check-text;
-      font-family: $mac-check-font;
+      color: $setup-check-text;
+      font-family: $setup-check-font;
       font-size: 0.85em;
       resize: vertical;
     }
@@ -90,7 +85,7 @@ $mac-check-font: "Courier New", monospace;
     right: 12px;
     border: none;
     background: transparent;
-    color: $mac-check-text;
+    color: $setup-check-text;
     font-size: 1.6em;
     cursor: pointer;
   }
@@ -112,24 +107,22 @@ $mac-check-font: "Courier New", monospace;
   &__copy,
   &__submit {
     padding: 8px 14px;
-    border: 1px solid $mac-check-accent;
+    border: 1px solid $setup-check-accent;
     border-radius: 6px;
     background: #0b1026;
-    color: $mac-check-text;
-    font-family: $mac-check-font;
+    color: $setup-check-text;
+    font-family: $setup-check-font;
     cursor: pointer;
     white-space: nowrap;
 
     &:hover,
     &:focus-visible {
-      background: $mac-check-accent;
-      color: $mac-check-bg;
+      background: $setup-check-accent;
+      color: $setup-check-bg;
     }
   }
 
-  &__submit {
-    margin-top: 10px;
-  }
+  &__submit { margin-top: 10px; }
 
   &__note {
     color: #94a3b8;
@@ -139,9 +132,9 @@ $mac-check-font: "Courier New", monospace;
   &__summary {
     font-weight: bold;
 
-    &.is-ok { color: $mac-check-pass; }
-    &.is-partial { color: $mac-check-partial; }
-    &.is-error { color: $mac-check-fail; }
+    &.is-ok { color: $setup-check-pass; }
+    &.is-partial { color: $setup-check-partial; }
+    &.is-error { color: $setup-check-fail; }
   }
 
   &__results ul {
@@ -154,13 +147,26 @@ $mac-check-font: "Courier New", monospace;
       border-bottom: 1px solid rgba(56, 189, 248, 0.15);
     }
 
-    li.is-pass span { color: $mac-check-pass; }
-    li.is-fail span { color: $mac-check-fail; }
+    li.is-pass span { color: $setup-check-pass; }
+    li.is-fail span { color: $setup-check-fail; }
 
     li code {
       display: block;
       margin: 2px 0 0 18px;
-      color: $mac-check-text;
+      color: $setup-check-text;
     }
+  }
+}
+
+@media (max-width: 520px) {
+  .cs-pathway-mac-check__dialog,
+  .cs-pathway-system-check__dialog {
+    padding: 20px 16px;
+  }
+
+  .cs-pathway-mac-check__command,
+  .cs-pathway-system-check__command {
+    align-items: stretch;
+    flex-direction: column;
   }
 }
