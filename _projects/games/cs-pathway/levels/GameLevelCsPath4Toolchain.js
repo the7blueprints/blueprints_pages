@@ -628,8 +628,8 @@ class GameLevelCsPath4Toolchain {
       color: '#ff3b6b',
       lineWidth: 5,
     };
-    const SHOW_BARRIER_DEBUG = true;
-    this._barrierPolylines = [sampleSpline(test_barrier.splinePoints)];
+    const SHOW_BARRIER_DEBUG = false;
+    this._barrierPolylines = [];
     if (SHOW_BARRIER_DEBUG) this._drawBarrierDebug(gameEnv, this._barrierPolylines);
 
     this.classes = [
