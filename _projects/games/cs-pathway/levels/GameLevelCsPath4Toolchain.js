@@ -41,6 +41,7 @@ import TrailPath from './TrailPath.js';
 import PathwayScoreboard from './PathwayScoreboard.js';
 import MacSetupCheck from './MacSetupCheck.js';
 import SystemSetupCheck from './SystemSetupCheck.js';
+import { sampleSpline, resolveCircle } from '../model/splineBarriers.js';
 import { recordLevelRatio } from '../model/pathwayScores.js';
 import {
   STATION_STATUS,
@@ -615,6 +616,22 @@ class GameLevelCsPath4Toolchain {
       };
     };
 
+    // Spike: test spline barrier left of the spawn point (remove or replace later).
+    const test_barrier = {
+      id: 'toolchain-test-barrier',
+      splinePoints: [
+        { x: 0.30 * width, y: 0.38 * height },
+        { x: 0.34 * width, y: 0.52 * height },
+        { x: 0.30 * width, y: 0.66 * height },
+      ],
+      visible: true,
+      color: '#ff3b6b',
+      lineWidth: 5,
+    };
+    const SHOW_BARRIER_DEBUG = true;
+    this._barrierPolylines = [sampleSpline(test_barrier.splinePoints)];
+    if (SHOW_BARRIER_DEBUG) this._drawBarrierDebug(gameEnv, this._barrierPolylines);
+
     this.classes = [
       { class: GamEnvBackground, data: bg_data },
       {
@@ -1165,6 +1182,7 @@ class GameLevelCsPath4Toolchain {
    */
   update() {
     const player = this.gameEnv?.gameObjects?.find((obj) => obj?.constructor?.name === 'Player' || obj?.constructor?.name === 'CsPathwayPlayer');
+    if (player && this._barrierPolylines) this._applyBarriers(player);
     if (!player || !Array.isArray(this._gatekeeperObjects)) return;
 
     // Don't draw the "Press E" alert over an open station panel (it covered its Close button).
@@ -1185,6 +1203,35 @@ class GameLevelCsPath4Toolchain {
       this.clearZoneAlert();
       this._activeZoneStationId = null;
     }
+  }
+
+  _applyBarriers(player) {
+    try {
+      const w = player.width || 0, h = player.height || 0;
+      const radius = Math.max(6, Math.min(w, h) * 0.2);
+      const c = { x: player.position.x + w / 2, y: player.position.y + h / 2 };
+      const r = resolveCircle(c, radius, this._barrierPolylines);
+      player.position.x += r.x - c.x;
+      player.position.y += r.y - c.y;
+    } catch (e) {
+      if (!this._barrierWarned) { console.warn('Barrier update failed:', e); this._barrierWarned = true; }
+    }
+  }
+
+  _drawBarrierDebug(gameEnv, polylines) {
+    const canvas = document.createElement('canvas');
+    canvas.width = gameEnv.innerWidth;
+    canvas.height = gameEnv.innerHeight;
+    canvas.style.cssText = `position:absolute;left:0;top:${gameEnv.top || 0}px;pointer-events:none;z-index:15;`;
+    (gameEnv.container || document.body).appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+    ctx.strokeStyle = '#ff3b6b'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+    polylines.forEach((pts) => {
+      ctx.beginPath();
+      pts.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)));
+      ctx.stroke();
+    });
+    this._barrierCanvas = canvas;
   }
 
   _getObjectCenter(object) {
@@ -1232,6 +1279,7 @@ class GameLevelCsPath4Toolchain {
   destroy() {
     console.log(`[${this.logPrefix}] tearing down level...`);
     this.scoreboard?.destroy();
+    this._barrierCanvas?.remove();
     this.macSetupCheck?.destroy();
     this.systemSetupCheck?.destroy();
     if (this._stuckCheckInterval) clearInterval(this._stuckCheckInterval);
