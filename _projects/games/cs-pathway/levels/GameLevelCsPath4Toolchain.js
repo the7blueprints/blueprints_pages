@@ -1210,12 +1210,30 @@ class GameLevelCsPath4Toolchain {
       const w = player.width || 0, h = player.height || 0;
       const radius = Math.max(6, Math.min(w, h) * 0.2);
       const c = { x: player.position.x + w / 2, y: player.position.y + h / 2 };
-      const r = resolveCircle(c, radius, this._barrierPolylines);
+      const r = resolveCircle(c, radius, [...this._barrierPolylines, ...this._hudPolylines()]);
       player.position.x += r.x - c.x;
       player.position.y += r.y - c.y;
     } catch (e) {
       if (!this._barrierWarned) { console.warn('Barrier update failed:', e); this._barrierWarned = true; }
     }
+  }
+
+  // Turns HUD DOM elements into closed barrier outlines in game coordinates.
+  _hudPolylines() {
+    const ids = [PROFILE_PANEL_ID, 'cs-pathway-scoreboard'];
+    const origin = (this.gameEnv?.container || document.body).getBoundingClientRect();
+    const pad = 4;
+    const out = [];
+    ids.forEach((id) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0) return;
+      const l = r.left - origin.left - pad, t = r.top - origin.top - pad;
+      const rt = r.right - origin.left + pad, b = r.bottom - origin.top + pad;
+      out.push([{ x: l, y: t }, { x: rt, y: t }, { x: rt, y: b }, { x: l, y: b }, { x: l, y: t }]);
+    });
+    return out;
   }
 
   _drawBarrierDebug(gameEnv, polylines) {
