@@ -41,7 +41,7 @@ import TrailPath from './TrailPath.js';
 import PathwayScoreboard from './PathwayScoreboard.js';
 import MacSetupCheck from './MacSetupCheck.js';
 import SystemSetupCheck from './SystemSetupCheck.js';
-import { sampleSpline, resolveCircle } from '../model/splineBarriers.js';
+import { sampleSpline, resolveCircle, clampToCorridor } from '../model/splineBarriers.js';
 import { recordLevelRatio } from '../model/pathwayScores.js';
 import {
   STATION_STATUS,
@@ -51,6 +51,21 @@ import {
 } from '@assets/js/projects/cs-pathway/model/stationStatus.js';
 
 const PROFILE_PANEL_ID = 'toolchain-trail-profile-panel';
+// Flip to false to compare the level with and without the road.
+const ROAD_ENABLED = true;
+// Which side of each building the road passes on (so buildings never block it).
+const ROAD_SIDES = Object.freeze({
+  'terminal-town-gate': 'right',
+  'compiler-canyon-forge': 'below',
+  'editor-isle-tower': 'below',
+  'git-village-hall': 'right',
+  'github-gateway-arch': 'above',
+  'build-bridge': 'above',
+  'integration-summit': 'left',
+});
+// Extra clearance between a building's solid box and the road centerline.
+// Raise it if buildings still block the road; lower it if you can't reach "Press E".
+const ROAD_PAD = 25;
 const OS_STORAGE_KEY = 'ocs-toolchain-trail-os';
 
 /**
@@ -553,7 +568,7 @@ class GameLevelCsPath4Toolchain {
       SCALE_FACTOR: PLAYER_SCALE_FACTOR,
       STEP_FACTOR: 1000,
       ANIMATION_FPS: 8,
-      INIT_POSITION: { x: width * 0.5, y: height * 0.52 },
+      INIT_POSITION: ROAD_ENABLED ? this._roadWaypoints()[0] : { x: width * 0.5, y: height * 0.52 },
       pixels: { height: 1024, width: 1024 },
       orientation: { rows: 2, columns: 2 },
       down: { row: 0, start: 0, columns: 1 },
@@ -639,6 +654,8 @@ class GameLevelCsPath4Toolchain {
         data: {
           stations: this.STATIONS,
           getStatus: (stationId) => level.getStationStatus(stationId),
+          getLaneWidth: () => (level._laneHalf || 0) * 2,
+          getLanePoints: () => (ROAD_ENABLED ? level._roadWaypoints() : []),
         },
       },
       { class: CsPathwayPlayer, data: player_data },
@@ -1210,12 +1227,56 @@ class GameLevelCsPath4Toolchain {
       const w = player.width || 0, h = player.height || 0;
       const radius = Math.max(6, Math.min(w, h) * 0.2);
       const c = { x: player.position.x + w / 2, y: player.position.y + h / 2 };
-      const r = resolveCircle(c, radius, [...this._barrierPolylines, ...this._hudPolylines()]);
-      player.position.x += r.x - c.x;
-      player.position.y += r.y - c.y;
+      this._laneHalf = ROAD_ENABLED ? Math.max(70, radius + 45) : 0;
+      const road = this._roadSegments();
+      const walls = [...this._barrierPolylines, ...this._hudPolylines()];
+      let p = c;
+      for (let pass = 0; pass < 2; pass++) {
+        p = clampToCorridor(p, radius, road, this._laneHalf);
+        p = resolveCircle(p, radius, walls);
+      }
+      player.position.x += p.x - c.x;
+      player.position.y += p.y - c.y;
     } catch (e) {
       if (!this._barrierWarned) { console.warn('Barrier update failed:', e); this._barrierWarned = true; }
     }
+  }
+
+  // Road waypoints: one per station, offset to the side so the building's solid
+  // box is clear of the centerline, plus a hub point between Tower and Git Hall.
+  _roadWaypoints() {
+    const width = this.gameEnv.innerWidth;
+    const height = this.gameEnv.innerHeight;
+    const est = height / 5; // sprite size guess until the live objects exist
+    const pts = [];
+    this.STATIONS.forEach((st) => {
+      const gk = (this._gatekeeperObjects || []).find((o) => o?.spriteData?.id === st.id);
+      const live = (gk?.width || 0) > 0;
+      const c = live ? this._getObjectCenter(gk) : { x: st.position.x, y: st.position.y };
+      const w = live ? gk.width : est;
+      const h = live ? (gk.height || gk.width) : est;
+      const p = { x: c.x, y: c.y };
+      const side = ROAD_SIDES[st.id] || 'below';
+      // hitbox is ~40% of the sprite; add the player's half-size and a pad
+      const dx = 0.2 * w + 0.2 * est + ROAD_PAD;
+      const dy = 0.2 * h + 0.2 * est + ROAD_PAD;
+      if (side === 'below') p.y += dy;
+      else if (side === 'above') p.y -= dy;
+      else if (side === 'right') p.x += dx;
+      else p.x -= dx;
+      pts.push(p);
+      if (st.id === 'editor-isle-tower') pts.push({ x: width * 0.5, y: height * 0.5 });
+    });
+    return pts;
+  }
+
+  // Station-to-station road segments, built from the same centers TrailPath draws.
+  _roadSegments() {
+    if (!ROAD_ENABLED) return [];
+    const centers = this._roadWaypoints();
+    const segs = [];
+    for (let i = 0; i < centers.length - 1; i++) segs.push([centers[i], centers[i + 1]]);
+    return segs;
   }
 
   // Turns HUD DOM elements into closed barrier outlines in game coordinates.

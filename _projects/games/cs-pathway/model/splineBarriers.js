@@ -36,3 +36,20 @@ export function resolveCircle(pos, radius, polylines) {
   }
   return { x, y };
 }
+
+// Keeps a circle inside the union of "road" corridors (each road is a segment
+// with a half-width). Inside any corridor: unchanged. Outside all: snapped to
+// the nearest corridor edge, so the player slides along walls instead of sticking.
+export function clampToCorridor(pos, radius, segments, halfWidth) {
+  const limit = halfWidth - radius;
+  if (!segments.length || limit <= 0) return { x: pos.x, y: pos.y };
+  let best = null;
+  for (const [a, b] of segments) {
+    const c = closestPointOnSegment(pos, a, b);
+    const d = Math.hypot(pos.x - c.x, pos.y - c.y);
+    if (d <= limit) return { x: pos.x, y: pos.y };
+    if (!best || d - limit < best.excess) best = { c, d, excess: d - limit };
+  }
+  const dx = pos.x - best.c.x, dy = pos.y - best.c.y;
+  return { x: best.c.x + (dx / best.d) * limit, y: best.c.y + (dy / best.d) * limit };
+}
