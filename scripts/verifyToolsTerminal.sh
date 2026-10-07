@@ -1,6 +1,10 @@
 #!/bin/bash
 
 ## Checks project tools and setup, reporting results directly in the terminal.
+##
+## With --report <upload-url> (the CS Pathway game shows the exact command), the
+## results are also saved to setup-report.md in the repository root and sent to
+## that URL, so the game can show them without copy and paste.
 
 pass_count=0
 warn_count=0
@@ -18,6 +22,71 @@ else
     PROJECT_ROOT="$(pwd)"
 fi
 repo_name="$(basename "$PROJECT_ROOT")"
+
+REPORT_FILE_NAME="setup-report.md"
+
+writeReportFile () {
+    local results_file="$1"
+    local report_file="$PROJECT_ROOT/$REPORT_FILE_NAME"
+    {
+        echo "# Setup report"
+        echo ""
+        echo "Created $(date '+%Y-%m-%d %H:%M:%S') by scripts/verifyToolsTerminal.sh"
+        echo ""
+        echo '```text'
+        cat "$results_file"
+        echo '```'
+    } > "$report_file" || { echo "Could not write $report_file." >&2; return 1; }
+    echo "Saved these results to $report_file"
+}
+
+uploadReport () {
+    local results_file="$1"
+    local upload_url="$2"
+    if ! command -v curl >/dev/null 2>&1; then
+        echo "Could not send the results: curl is not installed. Paste the results into the game instead." >&2
+        return 1
+    fi
+    if curl --fail --silent --show-error --max-time 20 --output /dev/null \
+        -X POST -H "Content-Type: text/plain" --data-binary "@$results_file" "$upload_url"; then
+        echo "Sent these results to the game. Look at the setup panel in your browser."
+    else
+        echo "Could not send the results (see the error above). If the code expired, copy the verify command from the game again, or paste the results into the game." >&2
+        return 1
+    fi
+}
+
+# Runs the checks in a child copy of this script so the full output can be saved and sent.
+runChecksAndReport () {
+    local upload_url="$1"
+    case "$upload_url" in
+        https://*|http://localhost:*|http://127.0.0.1:*) ;;
+        *)
+            echo "Usage: bash scripts/verifyToolsTerminal.sh --report <upload-url>" >&2
+            echo "Copy the full command from the game; '$upload_url' is not an upload URL." >&2
+            exit 2
+            ;;
+    esac
+
+    local results_file
+    results_file="$(mktemp)" || { echo "Could not create a temporary file for the results." >&2; exit 2; }
+    bash "${BASH_SOURCE[0]}" | tee "$results_file"
+    local checks_exit_code="${PIPESTATUS[0]}"
+
+    echo ""
+    writeReportFile "$results_file"
+    uploadReport "$results_file" "$upload_url"
+    rm -f "$results_file"
+    exit "$checks_exit_code"
+}
+
+if [ "$1" = "--report" ]; then
+    runChecksAndReport "$2"
+elif [ -n "$1" ]; then
+    echo "Unknown option: $1" >&2
+    echo "Usage: bash scripts/verifyToolsTerminal.sh [--report <upload-url>]" >&2
+    exit 2
+fi
 
 detect_platform () {
     case "$OSTYPE" in
@@ -108,6 +177,9 @@ resolvePip () {
 
 echo "Environment verification for $PROJECT_ROOT"
 echo "Detected platform: $PLATFORM"
+# SECONDS is bash's built-in timer; resetting it here times the checks only.
+SECONDS=0
+echo "Started: $(date '+%Y-%m-%d %H:%M:%S %Z')"
 echo ""
 echo "Tool installations"
 
@@ -246,6 +318,13 @@ else
     exit_code=0
 fi
 
+echo ""
+duration_seconds="$SECONDS"
+if [ "$duration_seconds" -eq 1 ]; then
+    echo "Duration: 1 second"
+else
+    echo "Duration: $duration_seconds seconds"
+fi
 printf 'Summary: %s passed, %s warned, %s failed\n' "$pass_count" "$warn_count" "$fail_count"
 echo "Overall: $overall"
 

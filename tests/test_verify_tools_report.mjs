@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
-import { readFile } from "node:fs/promises";
+import { execFile, execFileSync } from "node:child_process";
+import { readFile, rm } from "node:fs/promises";
+import { createServer } from "node:http";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
 
 const source = await readFile(new URL("../_projects/games/cs-pathway/model/verifyToolsReport.js", import.meta.url), "utf8");
 const { parseVerifyToolsOutput } = await import(`data:text/javascript;charset=utf-8,${encodeURIComponent(source)}`);
@@ -88,4 +90,75 @@ test("parses the real verifyToolsTerminal.sh output on this machine", () => {
   assert.ok(["PASS", "WARN", "FAIL"].includes(report.overall));
   const { passed, warned, failed } = report.counts;
   assert.equal(report.checks.length, passed + warned + failed);
+  assert.match(report.startedAt, /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/);
+  assert.ok(Number.isInteger(report.durationSeconds) && report.durationSeconds >= 0);
+});
+
+test("output from an older script without date and duration still parses", () => {
+  const report = parseVerifyToolsOutput(MAC_OUTPUT);
+  assert.equal(report.startedAt, null);
+  assert.equal(report.durationSeconds, null);
+});
+
+test("reads when the checks ran and how long they took", () => {
+  const report = parseVerifyToolsOutput(
+    "Started: 2026-10-06 09:51:35 PDT\n[PASS] git installed\n\nDuration: 3 seconds\nSummary: 1 passed, 0 warned, 0 failed\nOverall: PASS",
+  );
+  assert.equal(report.startedAt, "2026-10-06 09:51:35 PDT");
+  assert.equal(report.durationSeconds, 3);
+});
+
+// --report is how the game gets results without copy and paste: the script must
+// send exactly what it printed and keep a copy in setup-report.md.
+test("--report saves the results to setup-report.md and sends them to the upload URL", async () => {
+  const script = fileURLToPath(new URL("../scripts/verifyToolsTerminal.sh", import.meta.url));
+  const reportFile = new URL("../setup-report.md", import.meta.url);
+  const uploads = [];
+  const server = createServer((request, response) => {
+    let body = "";
+    request.on("data", (chunk) => (body += chunk));
+    request.on("end", () => {
+      uploads.push({ method: request.method, url: request.url, contentType: request.headers["content-type"], body });
+      response.end('{"saved":true}');
+    });
+  });
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const uploadUrl = `http://127.0.0.1:${server.address().port}/api/cs-pathway/setup-report/ABCD2345`;
+
+  let stdout;
+  try {
+    // Not execFileSync: it would block this process, and the server above could not answer.
+    ({ stdout } = await promisify(execFile)("bash", [script, "--report", uploadUrl], { encoding: "utf8" }));
+  } catch (error) {
+    stdout = error.stdout; // exit code 1 just means a check failed
+  } finally {
+    server.close();
+  }
+
+  try {
+    assert.equal(uploads.length, 1);
+    assert.equal(uploads[0].method, "POST");
+    assert.equal(uploads[0].url, "/api/cs-pathway/setup-report/ABCD2345");
+    assert.equal(uploads[0].contentType, "text/plain");
+    const uploaded = parseVerifyToolsOutput(uploads[0].body);
+    assert.equal(uploaded.error, null);
+    assert.deepEqual(uploaded, parseVerifyToolsOutput(stdout));
+    assert.match(stdout, /Sent these results to the game/);
+
+    const saved = await readFile(reportFile, "utf8");
+    assert.match(saved, /^# Setup report/);
+    assert.ok(saved.includes(uploads[0].body));
+  } finally {
+    await rm(reportFile, { force: true });
+  }
+});
+
+test("--report refuses anything that is not an https or localhost upload URL", () => {
+  const script = fileURLToPath(new URL("../scripts/verifyToolsTerminal.sh", import.meta.url));
+  for (const badUrl of ["", "ABCD2345", "http://example.com/api/cs-pathway/setup-report/ABCD2345"]) {
+    assert.throws(
+      () => execFileSync("bash", [script, "--report", badUrl], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }),
+      (error) => error.status === 2 && /not an upload URL/.test(error.stderr),
+    );
+  }
 });
