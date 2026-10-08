@@ -24,15 +24,22 @@ const DEFAULTS = Object.freeze({
   volume: 1.0,   // 0–1, multiplies each level's voiceVolume
   speed: 1.0,    // 0.5–2, multiplies each level's voiceRate
   pitch: 1.0,    // 0.5–1.5, multiplies each level's voicePitch
-  language: 'en', // base language code: 'en', 'es', 'fr', ...
+  language: 'en',  // base language code: 'en', 'es', 'zh', ...
   voiceName: '',   // '' = automatic voice for the chosen language
 });
 
 // Max voices listed per language, so the picker stays short.
 const MAX_VOICES_PER_LANGUAGE = 8;
 
-// macOS novelty/effect voices that don't suit dialogue.
+// Voices confirmed to sound distinct in your browser (lowercase, cleaned names).
+// If any are listed, ONLY these show in the Voice dropdown.
+// Leave empty ([]) to show the automatic short list.
+const ALLOWED_VOICES = [];
+
+// Voices never listed or auto-picked: macOS novelty/effect voices, plus
+// voices removed on request. Add more names here (lowercase) to hide them.
 const NOVELTY_VOICES = new Set([
+  'daniel',
   'albert', 'bad news', 'bahh', 'bells', 'boing', 'bubbles', 'cellos',
   'deranged', 'good news', 'hysterical', 'jester', 'junior', 'organ',
   'pipe organ', 'princess', 'ralph', 'superstar', 'trinoids', 'whisper',
@@ -41,7 +48,7 @@ const NOVELTY_VOICES = new Set([
 
 // Natural-sounding voices to list first when they exist.
 const PREFERRED_VOICES = [
-  'samantha', 'daniel', 'karen', 'moira', 'tessa', 'rishi', 'shelley',
+  'samantha', 'karen', 'moira', 'tessa', 'rishi', 'shelley',
   'eddy', 'flo', 'grandma', 'grandpa', 'reed', 'rocko', 'sandy',
   'google us english', 'google uk english female', 'google uk english male',
   'monica', 'paulina', 'jorge', 'thomas', 'amelie', 'anna', 'alice',
@@ -56,12 +63,15 @@ const baseLanguage = (lang = '') => String(lang).toLowerCase().split(/[-_]/)[0];
 /** "es" -> "Spanish" (falls back to the code if the browser can't name it). */
 const languageLabel = (code) => {
   try {
-    const names = new Intl.DisplayNames(['en'], { type: 'language' });
-    return names.of(code) || code;
+    return new Intl.DisplayNames(['en'], { type: 'language' }).of(code) || code;
   } catch (_) {
     return code;
   }
 };
+
+// Language codes the online translator expects when they differ from ours.
+const ONLINE_TRANSLATE_CODES = { zh: 'zh-CN', pt: 'pt-BR', no: 'nb' };
+
 
 const clamp = (n, min, max, fallback) => {
   const v = Number(n);
@@ -129,6 +139,11 @@ class VoiceSettings {
     return window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
   }
 
+  /**
+   * Up to MAX_VOICES_PER_LANGUAGE English voices, with hidden voices
+   * removed, duplicate names merged, and natural voices listed first.
+   * Each entry: { name (real voice name), label (cleaned name), voice }.
+   */
   /** Languages that have at least one usable voice, English first. */
   static getLanguages() {
     const codes = new Set(
@@ -142,22 +157,115 @@ class VoiceSettings {
       .sort((a, b) => (b.code === 'en') - (a.code === 'en') || a.label.localeCompare(b.label));
   }
 
-  /**
-   * Up to MAX_VOICES_PER_LANGUAGE voices for a language, with novelty voices
-   * removed, duplicate names merged, and natural voices listed first.
-   * Each entry: { name (real voice name), label (cleaned name), voice }.
-   */
-  static getVoicesFor(language) {
+  // ── Translation (English dialogue -> chosen language) ───────────
+  //
+  // 1. Chrome's built-in on-device Translator API (free, private, no key).
+  // 2. Fallback: MyMemory's free online API (sends the line to their server;
+  //    has a daily limit per network).
+  // If both fail, the line is spoken in English with an English voice.
+
+  static _translationCache = new Map();
+  static _translators = new Map();
+
+  static async translate(text, language) {
+    if (!text || !language || language === 'en') return text;
+
+    const key = `${language}|${text}`;
+    if (VoiceSettings._translationCache.has(key)) {
+      return VoiceSettings._translationCache.get(key);
+    }
+
+    let result = null;
+    try {
+      result = await VoiceSettings._translateBuiltIn(text, language);
+    } catch (_) {
+      result = null;
+    }
+    if (!result) {
+      try {
+        result = await VoiceSettings._translateOnline(text, language);
+      } catch (_) {
+        result = null;
+      }
+    }
+
+    if (result) VoiceSettings._translationCache.set(key, result);
+    return result; // null = translation failed
+  }
+
+  /** Start downloading Chrome's on-device model (call from a click/change). */
+  static prepareTranslation(language) {
+    if (language && language !== 'en') {
+      VoiceSettings._getBuiltInTranslator(language).catch(() => {});
+    }
+  }
+
+  static async _getBuiltInTranslator(language) {
+    if (typeof self === 'undefined' || !('Translator' in self)) return null;
+    if (VoiceSettings._translators.has(language)) {
+      return VoiceSettings._translators.get(language);
+    }
+
+    const options = { sourceLanguage: 'en', targetLanguage: language };
+    const availability = await self.Translator.availability(options);
+    if (availability === 'unavailable') return null;
+
+    const pending = self.Translator.create(options).catch(() => null);
+    VoiceSettings._translators.set(language, pending);
+    const translator = await pending;
+    // Creation can fail before the model is downloaded; allow a retry later.
+    if (!translator) VoiceSettings._translators.delete(language);
+    return translator;
+  }
+
+  static async _translateBuiltIn(text, language) {
+    const translator = await VoiceSettings._getBuiltInTranslator(language);
+    if (!translator) return null;
+    const out = await translator.translate(text);
+    return out && out.trim() ? out : null;
+  }
+
+  static async _translateOnline(text, language) {
+    const target = ONLINE_TRANSLATE_CODES[language] || language;
+    const url = 'https://api.mymemory.translated.net/get'
+      + `?q=${encodeURIComponent(text)}&langpair=en|${encodeURIComponent(target)}`;
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 6000);
+    try {
+      const response = await fetch(url, { signal: controller.signal });
+      if (!response.ok) return null;
+      const data = await response.json();
+      const out = data?.responseData?.translatedText;
+      if (Number(data?.responseStatus) !== 200 || !out || /MYMEMORY WARNING/i.test(out)) {
+        return null;
+      }
+      // Decode HTML entities like &#39;
+      return new DOMParser().parseFromString(out, 'text/html').documentElement.textContent || out;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  static getVoicesFor(language = 'en') {
     const seen = new Set();
     const rank = (label) => {
       const i = PREFERRED_VOICES.indexOf(label.toLowerCase());
       return i === -1 ? PREFERRED_VOICES.length : i;
     };
 
-    return VoiceSettings._allVoices()
+    let candidates = VoiceSettings._allVoices()
       .filter((v) => baseLanguage(v.lang) === language)
       .map((v) => ({ name: v.name, label: cleanVoiceName(v.name), voice: v, local: v.localService }))
-      .filter((v) => !NOVELTY_VOICES.has(v.label.toLowerCase()))
+      .filter((v) => !NOVELTY_VOICES.has(v.label.toLowerCase()));
+
+    // Use the confirmed-working list when this language has any of them.
+    if (ALLOWED_VOICES.length > 0) {
+      const allowed = candidates.filter((v) => ALLOWED_VOICES.includes(v.label.toLowerCase()));
+      if (allowed.length > 0) candidates = allowed;
+    }
+
+    return candidates
       .sort((a, b) => rank(a.label) - rank(b.label) || (b.local - a.local) || a.label.localeCompare(b.label))
       .filter((v) => {
         const key = v.label.toLowerCase();
@@ -188,7 +296,7 @@ class VoiceSettings {
    * Returns true if a specific voice was chosen, false if the caller
    * should fall back to its own automatic voice selection.
    */
-  static apply(utterance, base = {}) {
+  static apply(utterance, base = {}, language = VoiceSettings.get().language) {
     const s = VoiceSettings.get();
     utterance.volume = clamp((base.volume ?? 1) * s.volume, 0, 1, 1);
     utterance.rate = clamp((base.rate ?? 1) * s.speed, 0.1, 10, 1);
@@ -196,10 +304,11 @@ class VoiceSettings {
 
     if (!window.speechSynthesis) return false;
 
-    // A specific voice the player picked.
+    // The voice the player picked, if it speaks this language.
     if (s.voiceName) {
       const chosen = VoiceSettings._allVoices().find((v) => v.name === s.voiceName);
-      if (chosen) {
+      if (chosen && baseLanguage(chosen.lang) === language
+          && !NOVELTY_VOICES.has(cleanVoiceName(chosen.name).toLowerCase())) {
         utterance.voice = chosen;
         utterance.lang = chosen.lang;
         return true;
@@ -207,8 +316,8 @@ class VoiceSettings {
     }
 
     // Automatic voice for a non-English language: first voice on the short list.
-    if (s.language && s.language !== 'en') {
-      const first = VoiceSettings.getVoicesFor(s.language)[0];
+    if (language !== 'en') {
+      const first = VoiceSettings.getVoicesFor(language)[0];
       if (first) {
         utterance.voice = first.voice;
         utterance.lang = first.voice.lang;
@@ -220,11 +329,16 @@ class VoiceSettings {
     return false;
   }
 
-  static testVoice() {
+  static async testVoice() {
     if (!window.speechSynthesis || !VoiceSettings.get().enabled) return;
     VoiceSettings.stopSpeech();
-    const utterance = new SpeechSynthesisUtterance('This is how dialogue will sound.');
-    VoiceSettings.apply(utterance, { rate: 0.9, pitch: 1, volume: 1 });
+
+    const { language } = VoiceSettings.get();
+    const sample = 'This is how dialogue will sound.';
+    const translated = language === 'en' ? sample : await VoiceSettings.translate(sample, language);
+
+    const utterance = new SpeechSynthesisUtterance(translated || sample);
+    VoiceSettings.apply(utterance, { rate: 0.9, pitch: 1, volume: 1 }, translated ? language : 'en');
     window.speechSynthesis.speak(utterance);
   }
 
@@ -300,6 +414,7 @@ class VoiceSettings {
         <span class="ocs-vs-label">Voice</span>
         <select id="ocs-vs-voice"></select>
       </label>
+      <div class="ocs-vs-note" id="ocs-vs-note"></div>
       <div class="ocs-vs-actions">
         <button type="button" id="ocs-vs-test">Test voice</button>
         <button type="button" id="ocs-vs-reset">Reset</button>
@@ -320,6 +435,9 @@ class VoiceSettings {
       });
       $('ocs-vs-language').disabled = !cur.enabled;
       $('ocs-vs-voice').disabled = !cur.enabled;
+      $('ocs-vs-note').textContent = cur.language === 'en'
+        ? ''
+        : 'Spoken lines are translated. On-screen text stays in English.';
       $('ocs-vs-test').disabled = !cur.enabled;
     };
 
@@ -330,9 +448,7 @@ class VoiceSettings {
       const current = VoiceSettings.get().language;
 
       select.innerHTML = '';
-      if (languages.length === 0) {
-        select.appendChild(new Option('English', 'en'));
-      }
+      if (languages.length === 0) select.appendChild(new Option('English', 'en'));
       languages.forEach((lang) => select.appendChild(new Option(lang.label, lang.code)));
       select.value = languages.some((l) => l.code === current) ? current : 'en';
     };
@@ -378,9 +494,13 @@ class VoiceSettings {
     });
 
     $('ocs-vs-language').addEventListener('change', (event) => {
+      const language = event.target.value;
       // New language: start from its automatic voice.
-      VoiceSettings.set({ language: event.target.value, voiceName: '' });
+      VoiceSettings.set({ language, voiceName: '' });
+      // Runs during the user's click, so Chrome may download its translator.
+      VoiceSettings.prepareTranslation(language);
       fillVoices();
+      sync();
     });
 
     $('ocs-vs-voice').addEventListener('change', (event) => {
@@ -498,6 +618,11 @@ class VoiceSettings {
         color: inherit; font-family: inherit; font-size: 12px;
         border: 1px solid var(--ocs-game-accent, #4ecca3); border-radius: 4px;
       }
+      #${PANEL_ID} .ocs-vs-note {
+        font-size: 11px; line-height: 1.4; margin: -4px 0 10px;
+        color: var(--ocs-game-muted, #a5b4fc);
+      }
+      #${PANEL_ID} .ocs-vs-note:empty { display: none; }
       #${PANEL_ID} .ocs-vs-actions { display: flex; gap: 8px; margin-top: 4px; }
       #${PANEL_ID} .ocs-vs-actions button {
         flex: 1; padding: 8px; cursor: pointer;
@@ -574,6 +699,7 @@ constructor(options = {}) {
      DialogueSystem._speechState = {
        queue: [],
        speaking: false,
+       generation: 0, // bumps on every flush; late translations check it
      };
    }
    return DialogueSystem._speechState;
@@ -583,6 +709,7 @@ constructor(options = {}) {
    const state = DialogueSystem.getSpeechState();
    state.queue = [];
    state.speaking = false;
+   state.generation += 1;
  
    if (window.speechSynthesis) {
      window.speechSynthesis.cancel();
@@ -624,19 +751,42 @@ speakText(text) {
     return;
   }
 
+  const { language } = VoiceSettings.get();
+  if (language === 'en') {
+    this.queueSpeech(text, 'en');
+    return;
+  }
+
+  // Translate first. If the dialogue was closed or advanced while waiting,
+  // the generation changes and this late line is dropped.
+  const generation = DialogueSystem.getSpeechState().generation;
+  VoiceSettings.translate(text, language).then((translated) => {
+    if (DialogueSystem.getSpeechState().generation !== generation) return;
+    if (!this.enableVoice || !VoiceSettings.get().enabled) return;
+    // Translation failed: speak the English line with an English voice.
+    this.queueSpeech(translated || text, translated ? language : 'en');
+  });
+}
+
+// Build an utterance for text already in `language` and add it to the queue.
+queueSpeech(text, language) {
   const utterance = new SpeechSynthesisUtterance(text);
 
   // Level values × player's volume/speed/pitch settings.
-  // Returns true if the player picked a specific voice.
+  // Returns true if a voice for this language was chosen.
   const usedChosenVoice = VoiceSettings.apply(utterance, {
     rate: this.voiceRate,
     pitch: this.voicePitch,
     volume: this.voiceVolume,
-  });
+  }, language);
 
   if (!usedChosenVoice) {
     // Automatic voice: try to set Australian male voice
-    const voices = window.speechSynthesis.getVoices();
+    // (English only, skipping hidden voices such as Daniel)
+    const voices = window.speechSynthesis.getVoices().filter((voice) =>
+      baseLanguage(voice.lang) === 'en' &&
+      !NOVELTY_VOICES.has(cleanVoiceName(voice.name).toLowerCase())
+    );
 
     // First, look for Australian English voices
     let australianVoice = voices.find((voice) =>
