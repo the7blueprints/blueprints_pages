@@ -52,6 +52,7 @@ while preserving all critical instructions. The agent must still communicate wit
 ### 生态系统与工具默认设置
 
 * **优先使用 SASS：** 使用 SASS (`.scss`) 进行样式设计，而不是标准 CSS 或内联样式。
+* **SASS 兼容性：** 当前 Jekyll 使用 Ruby Sass；透明颜色使用 `rgba(0, 0, 0, 0.15)`，不要使用它无法编译的 `rgb(0 0 0 / 15%)` 语法。需通过 Makefile 的 Jekyll 构建验证。
 * **使用 `_projects`：** 利用 `_projects/` 目录中的模块化项目自动注册系统来创建新项目。
 * **系统扩展：** 在现有系统内工作并在需要时进行扩展，而不是创建全新的并行架构。
 * **日历页面约定：** `navigation/calendar.md` 里的布局和弹层样式要放到 SCSS 中，用语义化 class 代替 utility 风格的内联类。
@@ -65,6 +66,7 @@ while preserving all critical instructions. The agent must still communicate wit
 * 以 [Makefile](Makefile) 为唯一指令来源；常用目标 `make`/`make serve-current`、`make dev`、`make stop`、`make convert`、`make convert-single`（细节见 [README.md](README.md)）。
 * 顺序很关键：stop → build projects → convert notebooks/docx → split courses → jekyll serve（以 [Makefile](Makefile) 为准）。
 * 项目构建后必须运行 [SASS 导入生成器](scripts/generate_sass_imports.py)，以创建 `_sass/projects/_all.scss`；`build-registered-projects` 负责此依赖，避免 Jekyll 的 `projects/all` 导入失败。
+* 项目 Makefile 使用模板生成；不要为共享浏览器库添加本地 npm 清单、`.gitignore` 或 Makefile 覆盖。共享运行时库放在 `assets/js/vendor/`，保留许可证和版本说明；常规构建无需 npm 安装。
 
 ### 源文件与生成文件
 
@@ -152,7 +154,8 @@ while preserving all critical instructions. The agent must still communicate wit
 * **数据流：** 每个关卡的分数 = 完成百分比（0–100）。前端由 [model/pathwayScores.js](_projects/games/cs-pathway/model/pathwayScores.js) 统一记录（`completeLevelTask` 用于任务型关卡，`recordLevelRatio` 用于 Mission Tools/Toolchain Trail 这类比例型关卡），并通过 [services/PathwayScoreApi.js](_projects/games/cs-pathway/services/PathwayScoreApi.js) 写入 Spring `PUT /api/cs-pathway/scores/{levelKey}`；学生身份取自 Spring JWT cookie，不在请求体里传 uid。
 * **存储：** Spring（blueprint-spring `mvc/cspathway`）复用现有 `stats` 表：`module = "cs-pathway"`，`submodule` 0–4 对应五个关卡，`grades` = 百分比，`finished` = 达到 100%。不要改 `stats` 表结构，也不要重新编号 submodule。分数只增不减（前后端都如此）。
 * **新增任务/关卡：** 在 `PATHWAY_LEVELS` 中添加任务 id，并保持 levelKey 与 Spring 的 `CsPathwayLevel` 枚举一致。每个关卡页顶部居中的 `PathwayScoreboard` 分数条会自动显示（右上角留给各关卡的 toast/“Press E” 提示，左上角是状态面板）。教师视图：Spring `/mvc/cs-pathway/read`。
-* **Mac 设置检查：** Toolchain Trail 选择 macOS 时显示“Set up & check my Mac”按钮（[levels/MacSetupCheck.js](_projects/games/cs-pathway/levels/MacSetupCheck.js)）。网页无法在学生电脑上运行程序，所以面板按顺序给出要粘贴到学生自己 Terminal 的命令：`source scripts/mac_setup_agent.zsh`（开启 agent）→ `bash scripts/activate_macos.sh`（安装）→ `source ~/.zshrc` → `bash scripts/verifyToolsTerminal.sh`（验证）。学生把验证输出粘贴回来，由 [model/verifyToolsReport.js](_projects/games/cs-pathway/model/verifyToolsReport.js) 解析；修改 verifyToolsTerminal.sh 的输出格式时要同步更新解析器（`tests/test_verify_tools_report.mjs` 会运行真实脚本做契约测试）。脚本没有可执行位，所以一律用 `bash scripts/...` 运行。结果只显示，不保存。
+* **Mac 设置检查：** Toolchain Trail 选择 macOS 时显示“Set up & check my Mac”按钮（[levels/MacSetupCheck.js](_projects/games/cs-pathway/levels/MacSetupCheck.js)）。网页无法在学生电脑上运行程序，所以面板按顺序给出要粘贴到学生自己 Terminal 的命令：`source scripts/mac_setup_agent.zsh`（开启 agent）→ `bash scripts/activate_macos.sh`（安装）→ `source ~/.zshrc` → `bash scripts/verifyToolsTerminal.sh`（验证）。学生把验证输出粘贴回来，由 [model/verifyToolsReport.js](_projects/games/cs-pathway/model/verifyToolsReport.js) 解析；修改 verifyToolsTerminal.sh 的输出格式时要同步更新解析器（`tests/test_verify_tools_report.mjs` 会运行真实脚本做契约测试）。脚本没有可执行位，所以一律用 `bash scripts/...` 运行。
+* **Mac 结果自动上传：** Terminal 没有登录 cookie，所以已登录时面板先向 Spring 要一个 30 分钟有效的配对码（`POST /api/cs-pathway/setup-report/pairing-code`，[services/SetupReportApi.js](_projects/games/cs-pathway/services/SetupReportApi.js)），并把验证命令换成 `bash scripts/verifyToolsTerminal.sh --report <上传 URL>`。脚本把结果写入仓库根目录的 `setup-report.md`（已 gitignore）并 POST 原始文本到该 URL；面板每 4 秒轮询 `GET /api/cs-pathway/setup-report` 并自动显示。未登录或上传失败时退回粘贴流程（粘贴的结果只显示，不保存）。Spring 存在独立的 `cs_pathway_setup_report` 表（每个学生一行，仅保留最新报告，不动 `stats` 表），教师视图多一列“Setup check”。上传端点是公开的、报告是学生自报的，所以不要用它来自动加分。Spring 端用正则读取 `Overall:`/`Summary:` 行，修改脚本输出格式时也要同步。脚本还输出 `Started: <日期 时间 时区>` 和 `Duration: N seconds`（检查耗时），解析器读作 `startedAt`/`durationSeconds`（旧脚本输出时为 null）。
 * **嵌套项目注意：** `make` 的 `watch-projects` 对 `games/cs-pathway` 这类嵌套项目取错目录名，不会自动重建；修改后手动运行 `make -C _projects/games/cs-pathway build` 并重启 `make`。
 
 ## 反模式

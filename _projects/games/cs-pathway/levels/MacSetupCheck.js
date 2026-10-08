@@ -3,9 +3,15 @@
 // the selected OS). A web page cannot run programs on the student's Mac, so the
 // panel walks them through commands to paste into their own Terminal:
 // turn on the Mac setup agent, run the install script, then the verifier.
-// They paste the verifier's output back and the panel shows what passed and
-// what to fix. Results are only shown, never saved. Styles: sass/mac-setup-check.scss.
+// For a signed-in student the verify command sends its results to Spring, which
+// saves them, and the panel shows them as soon as they arrive. Otherwise (or if
+// sending fails) they paste the verifier's output back; pasted results are only
+// shown, not saved. Styles: sass/setup-check.scss.
 import { parseVerifyToolsOutput } from '../model/verifyToolsReport.js';
+import { fetchLatestSetupReport, requestReportUploadUrl } from '../services/SetupReportApi.js';
+
+const VERIFY_SCRIPT = 'bash scripts/verifyToolsTerminal.sh';
+const REPORT_POLL_INTERVAL_MS = 4000;
 
 // Scripts are committed without the execute bit, so run them with bash.
 const SETUP_STEPS = Object.freeze([
@@ -26,10 +32,11 @@ const SETUP_STEPS = Object.freeze([
   },
   {
     title: 'Verify your tools',
-    command: 'bash scripts/verifyToolsTerminal.sh | tee /dev/tty | pbcopy',
+    command: `${VERIFY_SCRIPT} | tee /dev/tty | pbcopy`,
     detail: 'Prints PASS, WARN, or FAIL for each check and copies the results to your clipboard.',
   },
 ]);
+const AUTO_REPORT_DETAIL = 'Prints PASS, WARN, or FAIL for each check, saves them to setup-report.md, and sends them here.';
 
 const SUMMARY_TEXT = {
   PASS: 'All checks passed. Your Mac is set up!',
@@ -41,6 +48,8 @@ class MacSetupCheck {
   constructor() {
     this.button = null;
     this.overlay = null;
+    this.reportPollTimer = null;
+    this.shownReportedAt = null;
   }
 
   setVisible(visible) {
@@ -69,7 +78,7 @@ class MacSetupCheck {
         <p>Open <strong>Terminal</strong> on your Mac and <code>cd</code> into your <code>blueprints_pages</code> folder.
           Then copy each command below into that Terminal, in order.</p>
         <ol class="cs-pathway-mac-check__steps"></ol>
-        <p><strong>Last step:</strong> paste the verification results here.</p>
+        <p class="cs-pathway-mac-check__status" aria-live="polite"><strong>Last step:</strong> paste the verification results here.</p>
         <textarea rows="7" spellcheck="false" placeholder="Environment verification for ..."></textarea>
         <button type="button" class="cs-pathway-mac-check__submit">Check my results</button>
         <div class="cs-pathway-mac-check__results" aria-live="polite"></div>
@@ -77,6 +86,7 @@ class MacSetupCheck {
 
     const stepList = this.overlay.querySelector('.cs-pathway-mac-check__steps');
     SETUP_STEPS.forEach((step) => stepList.appendChild(this.renderStep(step)));
+    this.startAutomaticReport(stepList.lastElementChild);
 
     this.overlay.querySelector('.cs-pathway-mac-check__close').addEventListener('click', () => this.close());
     this.overlay.querySelector('.cs-pathway-mac-check__submit').addEventListener('click', () => this.showResults());
@@ -108,7 +118,8 @@ class MacSetupCheck {
     copyButton.type = 'button';
     copyButton.className = 'cs-pathway-mac-check__copy';
     copyButton.textContent = 'Copy';
-    copyButton.addEventListener('click', () => this.copyCommand(step.command, copyButton));
+    // Read the command when clicked: the verify step's command changes once a report code arrives.
+    copyButton.addEventListener('click', () => this.copyCommand(command.textContent, copyButton));
     commandRow.append(command, copyButton);
 
     const detail = document.createElement('p');
@@ -130,8 +141,54 @@ class MacSetupCheck {
     }
   }
 
+  // Switches the verify step to the command that uploads its results, then watches for them.
+  // Without a sign-in or a reachable server the paste flow above stays as it is.
+  async startAutomaticReport(verifyStepItem) {
+    const overlay = this.overlay;
+    let uploadUrl;
+    try {
+      ({ uploadUrl } = await requestReportUploadUrl());
+    } catch (error) {
+      console.warn('[MacSetupCheck] automatic results unavailable, using paste:', error);
+      return;
+    }
+    if (this.overlay !== overlay) return; // closed while waiting
+
+    verifyStepItem.querySelector('code').textContent = `${VERIFY_SCRIPT} --report ${uploadUrl}`;
+    verifyStepItem.querySelector('.cs-pathway-mac-check__note').textContent = AUTO_REPORT_DETAIL;
+    verifyStepItem.querySelector('.cs-pathway-mac-check__copy').textContent = 'Copy';
+    overlay.querySelector('.cs-pathway-mac-check__status').textContent =
+      'Your results will show up below by themselves after the verify step. If they do not, paste them here.';
+
+    this.shownReportedAt = null;
+    this.showUploadedReport();
+    this.reportPollTimer = setInterval(() => this.showUploadedReport(), REPORT_POLL_INTERVAL_MS);
+  }
+
+  async showUploadedReport() {
+    const overlay = this.overlay;
+    let uploaded;
+    try {
+      uploaded = await fetchLatestSetupReport();
+    } catch (error) {
+      // Keep polling: one failed check (Wi-Fi blip, server restart) should not end the wait.
+      console.warn('[MacSetupCheck] could not check for uploaded results:', error);
+      return;
+    }
+    if (this.overlay !== overlay || !uploaded || uploaded.reportedAt === this.shownReportedAt) return;
+
+    this.shownReportedAt = uploaded.reportedAt;
+    this.renderReport(parseVerifyToolsOutput(uploaded.report));
+    const sentAt = new Date(uploaded.reportedAt).toLocaleString();
+    overlay.querySelector('.cs-pathway-mac-check__status').textContent =
+      `Results sent from your Terminal on ${sentAt}. Run the verify step again after fixing anything.`;
+  }
+
   showResults() {
-    const report = parseVerifyToolsOutput(this.overlay.querySelector('textarea').value);
+    this.renderReport(parseVerifyToolsOutput(this.overlay.querySelector('textarea').value));
+  }
+
+  renderReport(report) {
     const results = this.overlay.querySelector('.cs-pathway-mac-check__results');
     results.replaceChildren();
 
@@ -149,6 +206,14 @@ class MacSetupCheck {
     summary.textContent = SUMMARY_TEXT[report.overall] + counts;
     summary.classList.add(report.overall === 'PASS' ? 'is-ok' : report.overall === 'WARN' ? 'is-partial' : 'is-error');
     results.appendChild(summary);
+
+    if (report.startedAt) {
+      const timing = document.createElement('p');
+      timing.className = 'cs-pathway-mac-check__note';
+      const took = report.durationSeconds === null ? '' : `, took ${report.durationSeconds} second${report.durationSeconds === 1 ? '' : 's'}`;
+      timing.textContent = `Checked on ${report.startedAt}${took}.`;
+      results.appendChild(timing);
+    }
 
     const list = document.createElement('ul');
     for (const check of report.checks) {
@@ -176,6 +241,8 @@ class MacSetupCheck {
   }
 
   close() {
+    clearInterval(this.reportPollTimer);
+    this.reportPollTimer = null;
     this.overlay?.remove();
     this.overlay = null;
   }
