@@ -23,8 +23,8 @@ const STYLE_ID = 'ocs-voice-settings-style';
 const DEFAULTS = Object.freeze({
   enabled: true,
   volume: 1.0,   // 0–1, multiplies each level's voiceVolume
-  speed: 1.0,    // 0.5–2, multiplies each level's voiceRate
-  pitch: 1.0,    // 0.5–1.5, multiplies each level's voicePitch
+  speed: 1.0,    // 0.4–2, multiplies each level's voiceRate
+  pitch: 1.0,    // 0.1–2, multiplies each level's voicePitch
   language: 'en',  // base language code: 'en', 'es', 'zh', ...
   preset: 'natural',
   voiceName: '',   // '' = automatic voice for the chosen language
@@ -56,13 +56,22 @@ const COMMON_LANGUAGES = Object.freeze([
 ]);
 
 // Pitch/rate presets work with every language, unlike OS-specific novelty voices.
+// `group` keeps the picker readable as the exaggerated effects grow.
 const VOICE_PRESETS = Object.freeze([
-  { id: 'natural', label: 'Natural', speed: 1, pitch: 1, goofy: false },
-  { id: 'chipmunk', label: '🐿️ Chipmunk', speed: 1.25, pitch: 1.45, goofy: true },
-  { id: 'sleepy-giant', label: '🥱 Sleepy Giant', speed: 0.72, pitch: 0.62, goofy: true },
-  { id: 'space-robot', label: '🤖 Space Robot', speed: 0.9, pitch: 0.78, goofy: true },
-  { id: 'dramatic-villain', label: '🦹 Dramatic Villain', speed: 0.78, pitch: 0.68, goofy: true },
-  { id: 'hyper-gremlin', label: '👹 Hyper Gremlin', speed: 1.55, pitch: 1.35, goofy: true },
+  { id: 'natural', label: 'Natural', speed: 1, pitch: 1, group: 'regular' },
+  { id: 'chipmunk', label: '🐿️ Chipmunk', speed: 1.25, pitch: 1.45, group: 'goofy' },
+  { id: 'sleepy-giant', label: '🥱 Sleepy Giant', speed: 0.72, pitch: 0.62, group: 'goofy' },
+  { id: 'space-robot', label: '🤖 Space Robot', speed: 0.9, pitch: 0.78, group: 'goofy' },
+  { id: 'dramatic-villain', label: '🦹 Dramatic Villain', speed: 0.78, pitch: 0.68, group: 'goofy' },
+  { id: 'hyper-gremlin', label: '👹 Hyper Gremlin', speed: 1.55, pitch: 1.35, group: 'goofy' },
+  { id: 'bass-cannon', label: '🎸 Bass Cannon', speed: 0.5, pitch: 0.1, group: 'extreme' },
+  { id: 'cursed-tuba', label: '🎺 Cursed Tuba', speed: 0.68, pitch: 0.22, group: 'extreme' },
+  { id: 'demon-squeal', label: '👹 Demon Squeal', speed: 1.15, pitch: 2, group: 'extreme' },
+  { id: 'helium-goblin', label: '🎈 Helium Goblin', speed: 1.85, pitch: 2, group: 'extreme' },
+  { id: 'cave-monster', label: '🧟 Cave Monster', speed: 0.42, pitch: 0.15, group: 'extreme' },
+  { id: 'broken-cassette', label: '📼 Broken Cassette', speed: 0.52, pitch: 1.72, group: 'extreme' },
+  { id: 'microscopic-mouse', label: '🐭 Microscopic Mouse', speed: 2, pitch: 2, group: 'extreme' },
+  { id: 'unnecessarily-dramatic', label: '🎭 Unnecessarily Dramatic', speed: 0.4, pitch: 0.55, group: 'extreme' },
 ]);
 
 const VOICE_TEST_SAMPLES = Object.freeze({
@@ -160,8 +169,8 @@ class VoiceSettings {
     return {
       enabled: s.enabled !== false,
       volume: clamp(s.volume, 0, 1, DEFAULTS.volume),
-      speed: clamp(s.speed, 0.5, 2, DEFAULTS.speed),
-      pitch: clamp(s.pitch, 0.5, 1.5, DEFAULTS.pitch),
+      speed: clamp(s.speed, 0.4, 2, DEFAULTS.speed),
+      pitch: clamp(s.pitch, 0.1, 2, DEFAULTS.pitch),
       language: typeof s.language === 'string' && s.language ? baseLanguage(s.language) : 'en',
       preset: (VOICE_PRESETS.some((preset) => preset.id === s.preset) || s.preset === 'custom')
         ? s.preset
@@ -422,14 +431,14 @@ class VoiceSettings {
       </label>
       <label class="ocs-vs-row">
         <span class="ocs-vs-label">Speed <b id="ocs-vs-speed-val"></b></span>
-        <input type="range" id="ocs-vs-speed" min="0.5" max="2" step="0.1">
+        <input type="range" id="ocs-vs-speed" min="0.4" max="2" step="0.05">
       </label>
       <label class="ocs-vs-row">
         <span class="ocs-vs-label">Pitch <b id="ocs-vs-pitch-val"></b></span>
-        <input type="range" id="ocs-vs-pitch" min="0.5" max="1.5" step="0.05">
+        <input type="range" id="ocs-vs-pitch" min="0.1" max="2" step="0.05">
       </label>
       <label class="ocs-vs-row">
-        <span class="ocs-vs-label">Voice style</span>
+        <span class="ocs-vs-label">Voice effect</span>
         <select id="ocs-vs-preset"></select>
       </label>
       <label class="ocs-vs-row">
@@ -469,7 +478,7 @@ class VoiceSettings {
         ? ''
         : 'The browser translates spoken lines on-device when supported; otherwise it uses English. On-screen text stays in English.';
       const presetNote = cur.preset !== 'natural' && cur.preset !== 'custom'
-        ? 'Goofy styles change speed and pitch while keeping the correct language voice.'
+        ? 'Voice effects exaggerate speed and pitch while keeping the correct language voice.'
         : '';
       $('ocs-vs-note').textContent = [languageNote, presetNote].filter(Boolean).join(' ');
       $('ocs-vs-test').disabled = !cur.enabled;
@@ -482,12 +491,14 @@ class VoiceSettings {
       regular.label = 'Regular';
       const goofy = document.createElement('optgroup');
       goofy.label = 'Goofy voices';
+      const extreme = document.createElement('optgroup');
+      extreme.label = 'Extreme effects';
       VOICE_PRESETS.forEach((preset) => {
         const option = new Option(preset.label, preset.id);
-        (preset.goofy ? goofy : regular).appendChild(option);
+        ({ regular, goofy, extreme }[preset.group] || goofy).appendChild(option);
       });
       regular.appendChild(new Option('Custom sliders', 'custom'));
-      select.append(regular, goofy);
+      select.append(regular, goofy, extreme);
     };
 
     const fillLanguages = () => {

@@ -105,6 +105,27 @@ test('goofy presets update pitch and speed while keeping the selected language',
   assert.equal(settings.pitch, 1.45);
 });
 
+test('extreme effects reach the widened pitch range and preserve language voices', () => {
+  reset();
+  VoiceSettings.set({ language: 'es' });
+
+  const bass = VoiceSettings.applyPreset('bass-cannon');
+  assert.equal(bass.language, 'es');
+  assert.equal(bass.speed, 0.5);
+  assert.equal(bass.pitch, 0.1);
+
+  const demon = VoiceSettings.applyPreset('demon-squeal');
+  assert.equal(demon.language, 'es');
+  assert.equal(demon.speed, 1.15);
+  assert.equal(demon.pitch, 2);
+
+  const utterance = {};
+  assert.equal(VoiceSettings.apply(utterance, {}, 'es'), true);
+  assert.equal(utterance.voice.name, 'Mónica');
+  assert.equal(utterance.lang, 'es-MX');
+  assert.equal(utterance.pitch, 2);
+});
+
 test('favorite-language voice tests use a matching sample and voice', async () => {
   reset();
   VoiceSettings.set({ language: 'zh' });
