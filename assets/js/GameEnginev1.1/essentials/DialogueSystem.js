@@ -1,6 +1,3 @@
-// DialogueSystem.js - single-file version (voice settings included, no extra imports)
-// so it works in every runner, including ones that load code from blob: URLs.
-
 // VOICE_SETTINGS_START
 // VoiceSettings.js - Global voice settings + corner settings button.
 //
@@ -26,7 +23,6 @@ const DEFAULTS = Object.freeze({
   speed: 1.0,    // 0.4–2, multiplies each level's voiceRate
   pitch: 1.0,    // 0.1–2, multiplies each level's voicePitch
   language: 'en',  // base language code: 'en', 'es', 'zh', ...
-  preset: 'natural',
   voiceName: '',   // '' = automatic voice for the chosen language
 });
 
@@ -56,25 +52,6 @@ const COMMON_LANGUAGES = Object.freeze([
   { code: 'en', label: 'English' },
   { code: 'zh', label: '中文 (Chinese)' },
   { code: 'es', label: 'Español (Spanish)' },
-]);
-
-// Pitch/rate presets work with every language, unlike OS-specific novelty voices.
-// `group` keeps the picker readable as the exaggerated effects grow.
-const VOICE_PRESETS = Object.freeze([
-  { id: 'natural', label: 'Natural', speed: 1, pitch: 1, group: 'regular' },
-  { id: 'chipmunk', label: '🐿️ Chipmunk', speed: 1.25, pitch: 1.45, group: 'goofy' },
-  { id: 'sleepy-giant', label: '🥱 Sleepy Giant', speed: 0.72, pitch: 0.62, group: 'goofy' },
-  { id: 'space-robot', label: '🤖 Space Robot', speed: 0.9, pitch: 0.78, group: 'goofy' },
-  { id: 'dramatic-villain', label: '🦹 Dramatic Villain', speed: 0.78, pitch: 0.68, group: 'goofy' },
-  { id: 'hyper-gremlin', label: '👹 Hyper Gremlin', speed: 1.55, pitch: 1.35, group: 'goofy' },
-  { id: 'bass-cannon', label: '🎸 Bass Cannon', speed: 0.5, pitch: 0.1, group: 'extreme' },
-  { id: 'cursed-tuba', label: '🎺 Cursed Tuba', speed: 0.68, pitch: 0.22, group: 'extreme' },
-  { id: 'demon-squeal', label: '👹 Demon Squeal', speed: 1.15, pitch: 2, group: 'extreme' },
-  { id: 'helium-goblin', label: '🎈 Helium Goblin', speed: 1.85, pitch: 2, group: 'extreme' },
-  { id: 'cave-monster', label: '🧟 Cave Monster', speed: 0.42, pitch: 0.15, group: 'extreme' },
-  { id: 'broken-cassette', label: '📼 Broken Cassette', speed: 0.52, pitch: 1.72, group: 'extreme' },
-  { id: 'microscopic-mouse', label: '🐭 Microscopic Mouse', speed: 2, pitch: 2, group: 'extreme' },
-  { id: 'unnecessarily-dramatic', label: '🎭 Unnecessarily Dramatic', speed: 0.4, pitch: 0.55, group: 'extreme' },
 ]);
 
 const VOICE_TEST_SAMPLES = Object.freeze({
@@ -175,9 +152,6 @@ class VoiceSettings {
       speed: clamp(s.speed, 0.4, 2, DEFAULTS.speed),
       pitch: clamp(s.pitch, 0.1, 2, DEFAULTS.pitch),
       language: typeof s.language === 'string' && s.language ? baseLanguage(s.language) : 'en',
-      preset: (VOICE_PRESETS.some((preset) => preset.id === s.preset) || s.preset === 'custom')
-        ? s.preset
-        : DEFAULTS.preset,
       voiceName: typeof s.voiceName === 'string' ? s.voiceName : '',
     };
   }
@@ -318,11 +292,6 @@ class VoiceSettings {
     return [...natural, ...goofy];
   }
 
-  static applyPreset(presetId) {
-    const preset = VOICE_PRESETS.find((candidate) => candidate.id === presetId) || VOICE_PRESETS[0];
-    return VoiceSettings.set({ preset: preset.id, speed: preset.speed, pitch: preset.pitch });
-  }
-
   // ── Speech helpers used by DialogueSystem ───────────────────────
 
   /** DialogueSystem registers its queue flush here so "voice off" stops everything. */
@@ -457,10 +426,6 @@ class VoiceSettings {
         <input type="range" id="ocs-vs-pitch" min="0.1" max="2" step="0.05">
       </label>
       <label class="ocs-vs-row">
-        <span class="ocs-vs-label">Voice effect</span>
-        <select id="ocs-vs-preset"></select>
-      </label>
-      <label class="ocs-vs-row">
         <span class="ocs-vs-label">Language</span>
         <select id="ocs-vs-language"></select>
       </label>
@@ -487,37 +452,12 @@ class VoiceSettings {
         $(`ocs-vs-${key}-val`).textContent = FORMAT[key](cur[key]);
         $(`ocs-vs-${key}`).disabled = !cur.enabled;
       });
-      $('ocs-vs-preset').value = VOICE_PRESETS.some((preset) => preset.id === cur.preset)
-        ? cur.preset
-        : 'custom';
-      $('ocs-vs-preset').disabled = !cur.enabled;
       $('ocs-vs-language').disabled = !cur.enabled;
       $('ocs-vs-voice').disabled = !cur.enabled;
-      const languageNote = cur.language === 'en'
+      $('ocs-vs-note').textContent = cur.language === 'en'
         ? ''
         : 'The browser translates spoken lines on-device when supported; otherwise it uses English. On-screen text stays in English.';
-      const presetNote = cur.preset !== 'natural' && cur.preset !== 'custom'
-        ? 'Voice effects exaggerate speed and pitch while keeping the correct language voice.'
-        : '';
-      $('ocs-vs-note').textContent = [languageNote, presetNote].filter(Boolean).join(' ');
       $('ocs-vs-test').disabled = !cur.enabled;
-    };
-
-    const fillPresets = () => {
-      const select = $('ocs-vs-preset');
-      select.innerHTML = '';
-      const regular = document.createElement('optgroup');
-      regular.label = 'Regular';
-      const goofy = document.createElement('optgroup');
-      goofy.label = 'Goofy voices';
-      const extreme = document.createElement('optgroup');
-      extreme.label = 'Extreme effects';
-      VOICE_PRESETS.forEach((preset) => {
-        const option = new Option(preset.label, preset.id);
-        ({ regular, goofy, extreme }[preset.group] || goofy).appendChild(option);
-      });
-      regular.appendChild(new Option('Custom sliders', 'custom'));
-      select.append(regular, goofy, extreme);
     };
 
     const fillLanguages = () => {
@@ -572,7 +512,6 @@ class VoiceSettings {
       fillVoices();
     };
 
-    fillPresets();
     fillVoicesAndLanguages();
     sync();
 
@@ -592,19 +531,10 @@ class VoiceSettings {
 
     sliders.forEach((key) => {
       $(`ocs-vs-${key}`).addEventListener('input', (event) => {
-        const saved = VoiceSettings.set({ [key]: Number(event.target.value), preset: 'custom' });
+        const saved = VoiceSettings.set({ [key]: Number(event.target.value) });
         $(`ocs-vs-${key}-val`).textContent = FORMAT[key](saved[key]);
         sync();
       });
-    });
-
-    $('ocs-vs-preset').addEventListener('change', (event) => {
-      if (event.target.value === 'custom') {
-        VoiceSettings.set({ preset: 'custom' });
-      } else {
-        VoiceSettings.applyPreset(event.target.value);
-      }
-      sync();
     });
 
     $('ocs-vs-language').addEventListener('change', (event) => {
