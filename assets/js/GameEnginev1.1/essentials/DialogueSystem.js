@@ -30,18 +30,21 @@ const DEFAULTS = Object.freeze({
   voiceName: '',   // '' = automatic voice for the chosen language
 });
 
-// Max voices listed per language, so the picker stays short.
+// Max natural voices listed per language, so the picker stays short.
 const MAX_VOICES_PER_LANGUAGE = 8;
+const MAX_GOOFY_VOICES_PER_LANGUAGE = 20;
 
 // Voices confirmed to sound distinct in your browser (lowercase, cleaned names).
 // If any are listed, ONLY these show in the Voice dropdown.
 // Leave empty ([]) to show the automatic short list.
 const ALLOWED_VOICES = [];
 
-// Voices never listed or auto-picked: macOS novelty/effect voices, plus
-// voices removed on request. Add more names here (lowercase) to hide them.
-const NOVELTY_VOICES = new Set([
-  'daniel',
+// Voices that were explicitly removed stay hidden.
+const HIDDEN_VOICES = new Set(['daniel']);
+
+// Real novelty voices supplied by the operating system. They are shown in a
+// separate group when installed, and are never selected automatically.
+const GOOFY_SYSTEM_VOICES = new Set([
   'albert', 'bad news', 'bahh', 'bells', 'boing', 'bubbles', 'cellos',
   'deranged', 'good news', 'hysterical', 'jester', 'junior', 'organ',
   'pipe organ', 'princess', 'ralph', 'superstar', 'trinoids', 'whisper',
@@ -189,7 +192,7 @@ class VoiceSettings {
   static getLanguages() {
     const codes = new Set(
       VoiceSettings._allVoices()
-        .filter((v) => !NOVELTY_VOICES.has(cleanVoiceName(v.name).toLowerCase()))
+        .filter((v) => !HIDDEN_VOICES.has(cleanVoiceName(v.name).toLowerCase()))
         .map((v) => baseLanguage(v.lang))
         .filter(Boolean),
     );
@@ -279,24 +282,40 @@ class VoiceSettings {
 
     let candidates = VoiceSettings._allVoices()
       .filter((v) => baseLanguage(v.lang) === language)
-      .map((v) => ({ name: v.name, label: cleanVoiceName(v.name), voice: v, local: v.localService }))
-      .filter((v) => !NOVELTY_VOICES.has(v.label.toLowerCase()));
+      .map((v) => {
+        const label = cleanVoiceName(v.name);
+        return {
+          name: v.name,
+          label,
+          voice: v,
+          local: v.localService,
+          goofySystem: GOOFY_SYSTEM_VOICES.has(label.toLowerCase()),
+        };
+      })
+      .filter((v) => !HIDDEN_VOICES.has(v.label.toLowerCase()));
 
     // Use the confirmed-working list when this language has any of them.
     if (ALLOWED_VOICES.length > 0) {
-      const allowed = candidates.filter((v) => ALLOWED_VOICES.includes(v.label.toLowerCase()));
+      const allowed = candidates.filter((v) =>
+        v.goofySystem || ALLOWED_VOICES.includes(v.label.toLowerCase()));
       if (allowed.length > 0) candidates = allowed;
     }
 
-    return candidates
-      .sort((a, b) => rank(a.label) - rank(b.label) || (b.local - a.local) || a.label.localeCompare(b.label))
+    const unique = candidates
+      .sort((a, b) => Number(a.goofySystem) - Number(b.goofySystem)
+        || rank(a.label) - rank(b.label)
+        || (b.local - a.local)
+        || a.label.localeCompare(b.label))
       .filter((v) => {
         const key = v.label.toLowerCase();
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
-      })
-      .slice(0, MAX_VOICES_PER_LANGUAGE);
+      });
+
+    const natural = unique.filter((v) => !v.goofySystem).slice(0, MAX_VOICES_PER_LANGUAGE);
+    const goofy = unique.filter((v) => v.goofySystem).slice(0, MAX_GOOFY_VOICES_PER_LANGUAGE);
+    return [...natural, ...goofy];
   }
 
   static applyPreset(presetId) {
@@ -337,7 +356,7 @@ class VoiceSettings {
     if (s.voiceName) {
       const chosen = VoiceSettings._allVoices().find((v) => v.name === s.voiceName);
       if (chosen && baseLanguage(chosen.lang) === language
-          && !NOVELTY_VOICES.has(cleanVoiceName(chosen.name).toLowerCase())) {
+          && !HIDDEN_VOICES.has(cleanVoiceName(chosen.name).toLowerCase())) {
         utterance.voice = chosen;
         utterance.lang = chosen.lang;
         return true;
@@ -346,7 +365,7 @@ class VoiceSettings {
 
     // Automatic voice for a non-English language: first voice on the short list.
     if (language !== 'en') {
-      const first = VoiceSettings.getVoicesFor(language)[0];
+      const first = VoiceSettings.getVoicesFor(language).find((voice) => !voice.goofySystem);
       if (first) {
         utterance.voice = first.voice;
         utterance.lang = first.voice.lang;
@@ -532,8 +551,17 @@ class VoiceSettings {
       const voices = VoiceSettings.getVoicesFor(language);
 
       select.innerHTML = '';
-      select.appendChild(new Option('Automatic', ''));
-      voices.forEach((v) => select.appendChild(new Option(v.label, v.name)));
+      const natural = document.createElement('optgroup');
+      natural.label = 'Natural voices';
+      natural.appendChild(new Option('Automatic', ''));
+      const goofy = document.createElement('optgroup');
+      goofy.label = 'Goofy system voices';
+      voices.forEach((voice) => {
+        const option = new Option(voice.goofySystem ? `🤪 ${voice.label}` : voice.label, voice.name);
+        (voice.goofySystem ? goofy : natural).appendChild(option);
+      });
+      select.appendChild(natural);
+      if (goofy.children.length > 0) select.appendChild(goofy);
 
       // A voice saved on another computer may not exist here; show Automatic.
       select.value = voices.some((v) => v.name === voiceName) ? voiceName : '';
@@ -884,7 +912,8 @@ queueSpeech(text, language) {
     // (English only, skipping hidden voices such as Daniel)
     const voices = window.speechSynthesis.getVoices().filter((voice) =>
       baseLanguage(voice.lang) === 'en' &&
-      !NOVELTY_VOICES.has(cleanVoiceName(voice.name).toLowerCase())
+      !HIDDEN_VOICES.has(cleanVoiceName(voice.name).toLowerCase())
+      && !GOOFY_SYSTEM_VOICES.has(cleanVoiceName(voice.name).toLowerCase())
     );
 
     // First, look for Australian English voices

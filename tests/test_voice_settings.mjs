@@ -45,6 +45,7 @@ const naturalVoices = [
   { name: 'Mónica', lang: 'es-MX', localService: true },
   { name: 'Thomas', lang: 'fr-FR', localService: true },
   { name: 'Zarvox', lang: 'en-US', localService: true },
+  { name: 'Daniel', lang: 'en-GB', localService: true },
 ];
 
 function reset(voices = naturalVoices) {
@@ -79,11 +80,23 @@ test('an unavailable favorite remains visible but is marked unavailable', () => 
   assert.equal(chinese.available, false);
 });
 
-test('Mandarin and Cantonese voices are grouped as Chinese without leaking English voices', () => {
+test('language lists stay separate and installed novelty voices are identified', () => {
   reset();
   assert.deepEqual(VoiceSettings.getVoicesFor('zh').map(({ name }) => name), ['Ting-Ting', 'Sin-Ji']);
   assert.deepEqual(VoiceSettings.getVoicesFor('es').map(({ name }) => name), ['Mónica']);
-  assert.ok(!VoiceSettings.getVoicesFor('en').some(({ name }) => name === 'Zarvox'));
+  const english = VoiceSettings.getVoicesFor('en');
+  assert.deepEqual(english.map(({ name }) => name), ['Samantha', 'Zarvox']);
+  assert.equal(english.find(({ name }) => name === 'Zarvox').goofySystem, true);
+  assert.ok(!english.some(({ name }) => name === 'Daniel'));
+});
+
+test('an installed novelty voice can be selected as the real speech voice', () => {
+  reset();
+  VoiceSettings.set({ language: 'en', voiceName: 'Zarvox' });
+  const utterance = {};
+  assert.equal(VoiceSettings.apply(utterance, {}, 'en'), true);
+  assert.equal(utterance.voice.name, 'Zarvox');
+  assert.equal(utterance.lang, 'en-US');
 });
 
 test('a saved voice from the wrong language is replaced by a matching automatic voice', () => {
