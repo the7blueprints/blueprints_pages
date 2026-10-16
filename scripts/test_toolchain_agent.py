@@ -167,6 +167,16 @@ class MainFlowTest(unittest.TestCase):
         self.assertEqual(serve.call_args.args[:4], ("http://localhost:8585", "abc", "secret-token", toolchain_agent.detect_os()))
         self.assertNotIn("secret-token", out.getvalue())
         self.assertNotIn("the-code", out.getvalue())
+        self.assertEqual(serve.call_args.kwargs["poll_seconds"], toolchain_agent.DEFAULT_POLL_SECONDS)
+
+    def test_poll_interval_comes_from_the_command_line(self):
+        with mock.patch.object(toolchain_agent.getpass, "getpass", return_value="the-code"), \
+                mock.patch.object(toolchain_agent, "post_json",
+                                  return_value={"sessionId": "abc", "stationId": "x", "agentToken": "t"}), \
+                mock.patch.object(toolchain_agent, "serve", return_value=0) as serve, \
+                redirect_stdout(io.StringIO()):
+            toolchain_agent.main(["--server", "http://localhost:8585", "--poll-seconds", "5"])
+        self.assertEqual(serve.call_args.kwargs["poll_seconds"], 5.0)
 
     def test_rejected_code_prints_the_server_message(self):
         error = toolchain_agent.AgentError("Pairing code is invalid, expired, or already used", 401)

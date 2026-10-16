@@ -45,7 +45,7 @@ DEFAULT_SERVER = "https://spring.opencodingsociety.com"
 COMMAND_TIMEOUT_SECONDS = 30
 MAX_OUTPUT_LENGTH = 4000  # the backend keeps at most this much per check
 REQUEST_TIMEOUT_SECONDS = 20
-POLL_SECONDS = 2  # how often the agent asks which station the game wants checked
+DEFAULT_POLL_SECONDS = 2.0  # how often the agent asks which station the game wants checked; --poll-seconds overrides
 
 # (exit code, combined stdout + stderr)
 CommandResult = Tuple[int, str]
@@ -253,7 +253,7 @@ def check_station(server: str, session_id: str, token: str, station_id: str, os_
 
 
 def serve(server: str, session_id: str, token: str, os_name: str, repo: Path,
-          sleep: Callable[[float], None] = time.sleep) -> int:
+          poll_seconds: float = DEFAULT_POLL_SECONDS, sleep: Callable[[float], None] = time.sleep) -> int:
     """Wait for check requests from the game until the token expires or the student presses Ctrl+C."""
     last_request = None
     offline = False
@@ -270,7 +270,7 @@ def serve(server: str, session_id: str, token: str, os_name: str, repo: Path,
             if not offline:  # Wi-Fi blip or server restart: keep trying quietly
                 print(f"Lost contact with the server ({error}). Retrying...")
                 offline = True
-            sleep(POLL_SECONDS)
+            sleep(poll_seconds)
             continue
 
         request_id = (view.get("stationId"), view.get("requestedAt"))
@@ -284,7 +284,7 @@ def serve(server: str, session_id: str, token: str, os_name: str, repo: Path,
                     return 1
                 print(f"Could not send results: {error}. Click Check again in the game to retry.")
             print("\nWaiting for the next station...")
-        sleep(POLL_SECONDS)
+        sleep(poll_seconds)
 
 
 def main(argv: Optional[List[str]] = None) -> int:
@@ -292,6 +292,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--server", default=os.environ.get("TOOLCHAIN_SERVER", DEFAULT_SERVER),
                         help=f"backend URL (default {DEFAULT_SERVER})")
     parser.add_argument("--repo", default=".", help="repository the git and build checks run in (default: current folder)")
+    parser.add_argument("--poll-seconds", type=float,
+                        default=float(os.environ.get("TOOLCHAIN_POLL_SECONDS", DEFAULT_POLL_SECONDS)),
+                        help=f"how often to ask the server for the next station (default {DEFAULT_POLL_SECONDS:g})")
     args = parser.parse_args(argv)
 
     os_name = detect_os()
@@ -305,7 +308,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         paired = post_json(f"{server}/api/toolchain/pair", {"pairingCode": code})
         print("Paired! Leave this window open while you play Toolchain Trail.")
         print("Do your setup work in a second terminal window. Press Ctrl+C here to stop the agent.")
-        return serve(server, paired["sessionId"], paired["agentToken"], os_name, Path(args.repo).resolve())
+        return serve(server, paired["sessionId"], paired["agentToken"], os_name, Path(args.repo).resolve(),
+                     poll_seconds=args.poll_seconds)
     except AgentError as error:
         print(f"Error: {error}", file=sys.stderr)
         return 2

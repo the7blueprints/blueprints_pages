@@ -22,10 +22,9 @@ import {
   savePairedSessionId,
   forgetPairedSessionId,
 } from '../services/ToolchainApi.js';
+import { TOOLCHAIN_TRAIL_SETTINGS } from '../data/toolchainTrailSettings.js';
 
-const POLL_INTERVAL_MS = 3000;
-// After this long with no results, the agent window was probably closed.
-const SILENT_AGENT_HINT_MS = 20000;
+const { pollIntervalMs: POLL_INTERVAL_MS, silentAgentHintMs: SILENT_AGENT_HINT_MS } = TOOLCHAIN_TRAIL_SETTINGS;
 export default class StationVerificationTrial {
   /**
    * @param {Object} opts
