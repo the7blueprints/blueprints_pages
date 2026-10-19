@@ -273,7 +273,7 @@ venv_dir="$PROJECT_ROOT/venv"
 if [ -d "$venv_dir" ] && [ -f "$venv_dir/bin/activate" ] && [ -x "$venv_dir/bin/python3" ]; then
     reportCheck "venv set up at $venv_dir" "PASS"
 else
-    reportCheck "venv set up at $venv_dir" "FAIL" "Next step: run './scripts/venv.sh' from the repository root, then activate it with 'source venv/bin/activate'."
+    reportCheck "venv set up at $venv_dir" "FAIL" "Next step: run 'chmod a+x ./scripts/venv.sh && ./scripts/venv.sh' from the repository root, then activate it with 'source venv/bin/activate'."
 fi
 
 if [ -f "$PROJECT_ROOT/Gemfile.lock" ]; then

@@ -112,7 +112,7 @@ verifyOpencsPages () {
         printCommand "$venv_dir/bin/python3 --version"
     else
         echo "FAIL: venv not fully set up at $venv_dir"
-        echo "Hint: run scripts/venv.sh from the pages repo root"
+        echo "Hint: run chmod a+x ./scripts/venv.sh && ./scripts/venv.sh from the pages repo root"
     fi
 }
 

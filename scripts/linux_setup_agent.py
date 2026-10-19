@@ -292,7 +292,7 @@ def collect_setup_checks(project, debian):
             'project-venv',
             'Project venv created',
             venv_ok,
-            'From the project folder run: ./scripts/venv.sh',
+            'From the project folder run: chmod a+x ./scripts/venv.sh && ./scripts/venv.sh',
         ),
     ])
     return results

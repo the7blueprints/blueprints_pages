@@ -6,7 +6,7 @@ export const PASTE_PROMPTS = Object.freeze({
   'editor-isle-tower': 'Run code --version and paste its output.',
   'git-village-hall': 'Run git --version, git config --global --get user.name, and git config --global --get user.email; paste the outputs (you may redact the email domain).',
   'github-gateway-arch': 'Run git remote -v and git ls-remote --heads origin; paste the outputs. This confirms reachability, not authentication.',
-  'build-bridge': 'Run ./scripts/venv.sh and bundle check, then paste the final output. If your project uses make, paste its build result instead.',
+  'build-bridge': 'Run chmod a+x ./scripts/venv.sh && ./scripts/venv.sh, then bundle check, and paste the final output. If your project uses make, paste its build result instead.',
   'integration-summit': 'Run git log -1 --oneline and git push --dry-run; paste both outputs. A dry run does not publish your work.',
 });
 

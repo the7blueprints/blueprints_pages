@@ -109,7 +109,7 @@ def _project_checks(project: Path) -> List[CheckResult]:
         CheckResult("pages-repo", "Pages repository cloned", is_repo,
                     "Clone your pages repository and run this command from inside it."),
         CheckResult("project-venv", "Project venv created", has_venv,
-                    "From the project folder run: ./scripts/venv.sh"),
+                    "From the project folder run: chmod a+x ./scripts/venv.sh && ./scripts/venv.sh"),
     ]
 
 
