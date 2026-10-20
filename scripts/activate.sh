@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Prompt and set GitHub config
 read -p "Enter your Git username: " GIT_USER_NAME
 read -p "Enter your Git email: " GIT_USER_EMAIL
