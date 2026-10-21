@@ -779,6 +779,7 @@ class GameLevelCsPath0Forge {
 
         this.showToast('✦ Avatar Forge completed');
         this.markLevelComplete('identityForge');
+        await this.profileManager.updateProgress('identityForgeCompleted', true);
       } finally {
         identityState.avatarFlowActive = false;
       }
