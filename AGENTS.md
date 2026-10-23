@@ -176,6 +176,11 @@ while preserving all critical instructions. The agent must still communicate wit
 * **代码重复警告：** 课程聊天在 [_projects/systems/courses/_includes/](_projects/systems/courses/_includes/) 的 `announcement_chat.html`、`week_chat.html`、`lesson_chat.html` 中各有一份，并仍硬编码 8589 端口（待改用 `javaWebSocketURI`）；修改协议时同步这些 include 与 Messages 的 `thread.js`。
 * **课程聊天约定：** lesson 页面通过 frontmatter `chat: true` 启用，共享 backbone 群组 `"lessons"`，以 `[[lesson:<url>]]` 标记按页面隔离。
 
+## Toolchain Trail
+
+* **工作站验证（一次配对）：** 每个 Toolchain Trail 工作站由 [levels/StationVerificationTrial.js](_projects/games/cs-pathway/levels/StationVerificationTrial.js) 通过 Spring `/api/toolchain` 验证。学生在整个关卡只需运行一次 `python3 scripts/toolchain_agent.py --server <后端>`（macOS/Windows/Linux 通用，只用标准库），输入一次配对码；之后 agent 转到后台运行（`--stop` 停止，`--foreground` 留在前台），每次检查前重新读取新终端的 PATH，所以学生在同一个终端安装工具后无需重新配对；之后游戏到每个工作站时调用 `POST /sessions/{id}/check`，agent 轮询 `GET /sessions/{id}/next`（Bearer token，4 小时有效）自动检查并回传结果。配对的 sessionId 存在 localStorage `ocs-toolchain-agent-session`。检查失败时显示的精确修复命令在 [data/toolchainTrailFixes.js](_projects/games/cs-pathway/data/toolchainTrailFixes.js)（按检查 id 和操作系统）；新增检查时要同时加修复步骤（`tests/toolchain_trail_fixes.test.mjs` 会检查）。游戏的轮询间隔等时间设置在 [data/toolchainTrailSettings.js](_projects/games/cs-pathway/data/toolchainTrailSettings.js)，agent 的轮询间隔用 `--poll-seconds`，不要写死在代码里。检查 id 必须与 Spring `ToolchainStations` 一致；修改 agent 时运行 `python3 scripts/test_toolchain_agent.py`。
+* **嵌套项目注意：** `make` 的 `watch-projects` 对 `games/cs-pathway` 这类嵌套项目取错目录名，不会自动重建；修改后手动运行 `make -C _projects/games/cs-pathway build` 并重启 `make`。
+
 ## 反模式
 
 ### 上帝函数

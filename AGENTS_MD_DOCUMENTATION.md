@@ -166,6 +166,11 @@ Names should:
 
 * **Update this file:** As you iterate, make mistakes, and learn new system patterns or constraints, actively update `AGENTS.md` (and its optimized counterpart) with important notes so the system improves over time.
 
+## Toolchain Trail
+
+* **Station verification (pair once):** each Toolchain Trail station is verified through Spring `/api/toolchain` by [levels/StationVerificationTrial.js](_projects/games/cs-pathway/levels/StationVerificationTrial.js). The student runs `python3 scripts/toolchain_agent.py --server <backend>` once for the whole trail (macOS, Windows and Linux; stdlib only) and enters one pairing code. The agent then moves to the background (stop it with `--stop`, or use `--foreground`) and re-reads the PATH a new terminal would get before each check, so students install tools in the same terminal without re-pairing. After that, at each station the game calls `POST /sessions/{id}/check` and the agent, polling `GET /sessions/{id}/next` with its Bearer token (valid 4 hours), runs the checks and posts results. The paired sessionId lives in localStorage `ocs-toolchain-agent-session`. The exact fix commands shown for a failed check live in [data/toolchainTrailFixes.js](_projects/games/cs-pathway/data/toolchainTrailFixes.js), by check id and OS; a new check needs fix steps too (`tests/toolchain_trail_fixes.test.mjs` enforces it). Game timings live in [data/toolchainTrailSettings.js](_projects/games/cs-pathway/data/toolchainTrailSettings.js) and the agent's poll interval is `--poll-seconds`; don't hardcode them in code. Check ids must match Spring's `ToolchainStations`; run `python3 scripts/test_toolchain_agent.py` after changing the agent.
+* **Nested-project gotcha:** `make`'s `watch-projects` derives the wrong folder name for nested projects like `games/cs-pathway`, so it won't rebuild them. After edits, run `make -C _projects/games/cs-pathway build` and restart `make`.
+
 ## Anti-Patterns
 
 ### God Functions
