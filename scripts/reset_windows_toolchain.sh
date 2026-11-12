@@ -8,28 +8,43 @@
 ##   bash scripts/reset_windows_toolchain.sh --dry-run  # only lists, changes nothing
 ##   bash scripts/reset_windows_toolchain.sh --yes      # skips the confirmation
 ##
-## Removes what the trail's Windows steps add: the apt packages and /opt/gems
-## from activate_ubuntu.sh, its ~/.bashrc lines, the global git name/email and
-## credential helper, the cloned ~/opencs/portfolio (with its venv and .bundle),
-## ~/toolchain-trail, and setup-report.md. python3 and git stay installed because
+## Run it from your own blueprints_pages checkout, not from ~/opencs/pages,
+## because it deletes ~/opencs/pages.
+##
+## Removes what the trail's Windows steps add, as listed in
+## scripts/reset_windows_toolchain_items.txt: the pages clone the game checks
+## (with its venv and .bundle), the apt packages and /opt/gems from
+## activate_ubuntu.sh, its ~/.bashrc lines, and the global git name, email and
+## credential helper. It also stops the Toolchain Trail agent and deletes its
+## log, and deletes setup-report.md. python3 and git stay installed because
 ## Ubuntu itself depends on them. Windows-side apps (VS Code, Git Credential
 ## Manager) cannot be removed from WSL, so the steps for those are printed.
 
 set -euo pipefail
 
 PROJECT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+ITEMS_FILE="$PROJECT_ROOT/scripts/reset_windows_toolchain_items.txt"
+AGENT="$PROJECT_ROOT/scripts/toolchain_agent.py"
 BASHRC="$HOME/.bashrc"
-GEM_HOME_DIR="/opt/gems"
-PORTFOLIO_DIR="$HOME/opencs/portfolio"
-TRAIL_DIR="$HOME/toolchain-trail"
 SETUP_REPORT="$PROJECT_ROOT/setup-report.md"
-# Packages installed by activate_ubuntu.sh, minus python3 (Ubuntu needs it).
-APT_PACKAGES=(python3-pip python-is-python3 python3-venv ruby-full build-essential
-    zlib1g-dev jupyter-notebook sqlite3 lsof)
-# Exact lines activate_ubuntu.sh appends to ~/.bashrc.
-BASHRC_LINES=('alias code="code --no-sandbox"'
-    'export GEM_HOME="/opt/gems"'
-    'export PATH="/opt/gems/bin:$PATH"')
+
+# Prints the values of one kind from the items file, one per line, with ~/ as $HOME/.
+items_of_kind() {
+    awk -v kind="$1" -v home="$HOME" '
+        $1 == kind {
+            value = substr($0, length(kind) + 2)
+            if (substr(value, 1, 2) == "~/") value = home substr(value, 2)
+            print value
+        }
+    ' "$ITEMS_FILE"
+}
+
+mapfile -t APT_PACKAGES < <(items_of_kind apt-package)
+mapfile -t SYSTEM_FOLDERS < <(items_of_kind system-folder)
+mapfile -t FOLDERS < <(items_of_kind folder)
+mapfile -t FILES < <(items_of_kind file)
+mapfile -t BASHRC_LINES < <(items_of_kind bashrc-line)
+mapfile -t GIT_SETTINGS < <(items_of_kind git-setting)
 
 DRY_RUN=false
 ASSUME_YES=false
@@ -53,12 +68,14 @@ if ! grep -qi microsoft /proc/version 2>/dev/null; then
 fi
 
 # Never delete the checkout this script is running from.
-case "$PROJECT_ROOT/" in
-    "$PORTFOLIO_DIR"/*|"$TRAIL_DIR"/*)
-        echo "This script is running from inside $PROJECT_ROOT, which it would delete. Run it from another blueprints_pages checkout." >&2
-        exit 2
-        ;;
-esac
+for folder in "${FOLDERS[@]}"; do
+    case "$PROJECT_ROOT/" in
+        "$folder"/*)
+            echo "This script is running from inside $folder, which it would delete. Run it from another blueprints_pages checkout." >&2
+            exit 2
+            ;;
+    esac
+done
 
 log() {
     echo "=== $1 ==="
@@ -78,12 +95,19 @@ list_planned_changes() {
     packages="$(installed_packages | tr '\n' ' ')"
     echo "This will remove (testing only):"
     echo "  apt packages:     ${packages:-none installed}"
-    [ -d "$GEM_HOME_DIR" ] && echo "  gems folder:      $GEM_HOME_DIR"
-    [ -d "$PORTFOLIO_DIR" ] && echo "  cloned repo:      $PORTFOLIO_DIR (any unpushed work there is lost)"
-    [ -d "$TRAIL_DIR" ] && echo "  trail folder:     $TRAIL_DIR"
-    [ -f "$SETUP_REPORT" ] && echo "  setup report:     $SETUP_REPORT"
+    local path
+    for path in "${SYSTEM_FOLDERS[@]}"; do
+        [ -d "$path" ] && echo "  folder:           $path"
+    done
+    for path in "${FOLDERS[@]}"; do
+        [ -d "$path" ] && echo "  folder:           $path (any unpushed work there is lost)"
+    done
+    for path in "${FILES[@]}" "$SETUP_REPORT"; do
+        [ -f "$path" ] && echo "  file:             $path"
+    done
+    echo "  agent:            the Toolchain Trail agent is stopped if it is running"
     echo "  ~/.bashrc:        Toolchain Trail lines (backup saved first)"
-    echo "  git --global:     user.name, user.email, credential.helper"
+    echo "  git --global:     ${GIT_SETTINGS[*]}"
 }
 
 reset_bashrc() {
@@ -107,7 +131,7 @@ reset_bashrc() {
 
 reset_git_config() {
     local key
-    for key in user.name user.email credential.helper; do
+    for key in "${GIT_SETTINGS[@]}"; do
         git config --global --unset-all "$key" 2>/dev/null || true
     done
 }
@@ -149,14 +173,17 @@ if [ "$ASSUME_YES" != true ]; then
     fi
 fi
 
+log "Stopping the Toolchain Trail agent"
+python3 "$AGENT" --stop
 log "Removing apt packages"
 remove_packages
-log "Removing $GEM_HOME_DIR"
-sudo rm -rf "$GEM_HOME_DIR"
-log "Removing trail folders and setup report"
-rm -rf "$PORTFOLIO_DIR" "$TRAIL_DIR"
-rmdir "$HOME/opencs" 2>/dev/null || true
-rm -f "$SETUP_REPORT"
+log "Removing trail folders and files"
+sudo rm -rf "${SYSTEM_FOLDERS[@]}"
+for folder in "${FOLDERS[@]}"; do
+    rm -rf "$folder"
+    rmdir "$(dirname "$folder")" 2>/dev/null || true  # the trail made the parent (opencs) for the clone; kept if anything else is in it
+done
+rm -f "${FILES[@]}" "$SETUP_REPORT"
 log "Cleaning ~/.bashrc"
 reset_bashrc
 log "Clearing global git identity and credential helper"

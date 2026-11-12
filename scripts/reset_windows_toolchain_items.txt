@@ -1,0 +1,37 @@
+# What scripts/reset_windows_toolchain.sh removes (TESTING ONLY).
+# Each line is "<kind> <value>". Keep this list in step with the Windows steps
+# of the Toolchain Trail game and with scripts/activate_ubuntu.sh.
+#
+# Kinds:
+#   apt-package    purged with apt (python3 and git are left out: Ubuntu needs them)
+#   system-folder  deleted with sudo
+#   folder         deleted; ~/ means the player's home folder
+#   file           deleted; ~/ means the player's home folder
+#   bashrc-line    exact line removed from ~/.bashrc
+#   git-setting    global git setting that is unset
+
+# Terminal Town Gate: the pages clone the game checks (toolchain.project-folder in blueprint-spring).
+folder ~/opencs/pages
+
+# Compiler Canyon Forge and Build Bridge: what activate_ubuntu.sh installs.
+apt-package python3-pip
+apt-package python-is-python3
+apt-package python3-venv
+apt-package ruby-full
+apt-package build-essential
+apt-package zlib1g-dev
+apt-package jupyter-notebook
+apt-package sqlite3
+apt-package lsof
+system-folder /opt/gems
+bashrc-line alias code="code --no-sandbox"
+bashrc-line export GEM_HOME="/opt/gems"
+bashrc-line export PATH="/opt/gems/bin:$PATH"
+
+# Git Village Hall: what activate.sh and the credential step set.
+git-setting user.name
+git-setting user.email
+git-setting credential.helper
+
+# The Toolchain Trail agent's log (the script stops the agent itself first).
+file ~/.toolchain-agent.log
